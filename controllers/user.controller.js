@@ -171,8 +171,8 @@ exports.UpUserInfo = async (req, res) => {
       const words = userData.fullname.split(/\s+/);
       userData.fullname =
         words.length > 2 ? words.slice(0, 2).join(" ") : words.join(" ");
-      if (userData.fullname.length > 20)
-        userData.fullname = userData.fullname.substring(0, 20);
+      if (userData.fullname.length > 35)
+        userData.fullname = userData.fullname.substring(0, 35);
       userData.fullname = userData.fullname
         .split(" ")
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
@@ -181,9 +181,9 @@ exports.UpUserInfo = async (req, res) => {
 
     if (userData.username) {
       userData.username = userData.username
-        .replace(/\s/g, "")
+        .replace(/[.\s]/g, "")
         .toLowerCase()
-        .substring(0, 20);
+        .substring(0, 35);
 
       const existingUser = await User.findOne({ username: userData.username });
       if (existingUser && existingUser.email !== email) {
