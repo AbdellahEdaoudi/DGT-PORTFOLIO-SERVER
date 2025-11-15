@@ -595,8 +595,8 @@ exports.getUserByUsernameMeta = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({
-      status:200,
+    res.json({
+      status:true,
       user,
     });
   } catch (error) {
