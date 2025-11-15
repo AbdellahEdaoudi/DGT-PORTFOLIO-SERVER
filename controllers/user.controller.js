@@ -584,3 +584,22 @@ exports.getUserByUsername = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// 🟢 Get user by username
+exports.getUserByUsernameMeta = async (req, res) => {
+  const { username } = req.params;
+  try {
+    const user = await User.findOne({ username })
+    .select("-__v fullname email phoneNumber urlimage about category");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      status:200,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

@@ -8,6 +8,7 @@ const upload = require('../middlewares/multer');
 app.get('/', isAuthenticated, UserController.getUsers);
 app.get('/email/:email', isAuthenticated, UserController.getUserByEmail);
 app.get('/username/:username', UserController.getUserByUsername);
+app.get('/metauser/:username', UserController.getUserByUsernameMeta);
 app.post('/', isAuthenticated, UserController.createUser);
 // Update User Data
 app.put('/:email',isAuthenticated,upload.single('urlimage'), UserController.updateUserByEmail); 
