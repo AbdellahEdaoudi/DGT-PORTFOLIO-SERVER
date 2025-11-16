@@ -146,70 +146,46 @@ exports.updateUserByEmail = async (req, res) => {
 // 🟢 UpUserInfo
 exports.UpUserInfo = async (req, res) => {
   const { email } = req.user;
+
   try {
-    const { fullname, username, phoneNumber, country, category } = req.body;
-
-    const userData = {
-      fullname,
-      username,
-      phoneNumber,
-      country,
-      category,
-    };
-
-    Object.keys(userData).forEach(
-      (key) => userData[key] === undefined && delete userData[key]
-    );
-
-    for (const key in userData) {
-      if (typeof userData[key] === "string") {
-        userData[key] = sanitizeHtml(userData[key].trim());
+    const allowedFields = ["fullname", "username", "phoneNumber", "country", "category"];
+    const userData = {};
+    allowedFields.forEach((f) => {
+      if (req.body[f]) {
+        let val = sanitizeHtml(req.body[f].trim());
+        userData[f] = val.substring(0, 100);
       }
-    }
+    });
 
-    if (userData.fullname) {
-      const words = userData.fullname.split(/\s+/);
-      userData.fullname =
-        words.length > 2 ? words.slice(0, 2).join(" ") : words.join(" ");
-      if (userData.fullname.length > 35)
-        userData.fullname = userData.fullname.substring(0, 35);
-      userData.fullname = userData.fullname
-        .split(" ")
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-        .join(" ");
-    }
-
+    // if (userData.fullname) {
+    //   userData.fullname = userData.fullname
+    //     .split(/\s+/)
+    //     .slice(0, 2)
+    //     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    //     .join(" ");
+    // }
     if (userData.username) {
-      userData.username = userData.username
-        .replace(/[.\s]/g, "")
-        .toLowerCase()
-        .substring(0, 35);
-
+      userData.username = userData.username.replace(/[.\s]/g, "").toLowerCase().substring(0, 100);
       const existingUser = await User.findOne({ username: userData.username });
-      if (existingUser && existingUser.email !== email) {
+      if (existingUser && existingUser.email !== email)
         return res.status(400).json({ error: "Username already exists" });
-      }
     }
-
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path);
-      userData.urlimage = result.secure_url;
+      const up = await cloudinary.uploader.upload(req.file.path);
+      userData.urlimage = up.secure_url;
     }
-
     const updatedUser = await User.findOneAndUpdate(
       { email },
       { $set: userData },
-      { new: true, runValidators: true }
+      { new: true }
     );
-
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!updatedUser) return res.status(404).json({ message: "User not found" });
 
     res.json(updatedUser);
-  } catch (error) {
-    console.error("Error updating user info:", error);
-    res.status(500).json({ error: error.message });
+
+  } catch (err) {
+    console.error("Update Error:", err);
+    res.status(500).json({ error: err.message });
   }
 };
 exports.UpUserAbout = async (req, res) => {
@@ -218,7 +194,7 @@ exports.UpUserAbout = async (req, res) => {
     let { about } = req.body;
 
     if (typeof about === "string") {
-      about = sanitizeHtml(about.trim());
+      about = sanitizeHtml(about.trim()).substring(0, 500);
     } else {
       return res.status(400).json({ error: "Invalid 'about' field" });
     }
@@ -246,7 +222,7 @@ exports.UpUserBgColor = async (req, res) => {
     let { bgcolorp } = req.body;
 
     if (typeof bgcolorp === "string") {
-      bgcolorp = sanitizeHtml(bgcolorp.trim());
+      bgcolorp = sanitizeHtml(bgcolorp.trim()).substring(0, 50);
     } else {
       return res.status(400).json({ error: "Invalid 'bgcolorp' field" });
     }
@@ -271,8 +247,6 @@ exports.UpUserLanguages = async (req, res) => {
 
   try {
     let { languages } = req.body;
-
-    // تحويل إذا وصل كسلسلة JSON
     if (typeof languages === "string") {
       try {
         languages = JSON.parse(languages);
@@ -284,6 +258,12 @@ exports.UpUserLanguages = async (req, res) => {
     if (!Array.isArray(languages)) {
       return res.status(400).json({ error: "'languages' must be an array" });
     }
+    languages = languages.map(lang => {
+      if (typeof lang === "string") {
+        return lang.trim().substring(0, 50);
+      }
+      return "";
+    }).filter(lang => lang);
 
     const updatedUser = await User.findOneAndUpdate(
       { email },
@@ -316,6 +296,12 @@ exports.UpUserServices = async (req, res) => {
     if (!Array.isArray(services)) {
       return res.status(400).json({ error: "'services' must be an array" });
     }
+    services = services.map(serv => {
+      if (typeof serv === "string") {
+        return serv.trim().substring(0, 50);
+      }
+      return "";
+    }).filter(serv => serv);
 
     const updatedUser = await User.findOneAndUpdate(
       { email },
@@ -348,6 +334,12 @@ exports.UpUserSkills = async (req, res) => {
     if (!Array.isArray(skills)) {
       return res.status(400).json({ error: "'skills' must be an array" });
     }
+    skills = skills.map(skil => {
+      if (typeof skil === "string") {
+        return skil.trim().substring(0, 130);
+      }
+      return "";
+    }).filter(skil => skil);
 
     const updatedUser = await User.findOneAndUpdate(
       { email },
@@ -381,6 +373,19 @@ exports.UpUserEducation = async (req, res) => {
       return res.status(400).json({ error: "'education' must be an array" });
     }
 
+    education = education.map(item => {
+      if (typeof item === "object" && item !== null) {
+        return {
+          school: item.school ? item.school.trim().substring(0, 100) : "",
+          degree: item.degree ? item.degree.trim().substring(0, 100) : "",
+          field: item.field ? item.field.trim().substring(0, 100) : "",
+          startYear: item.startYear ? item.startYear.trim().substring(0, 20) : "",
+          endYear: item.endYear ? item.endYear.trim().substring(0, 20) : "",
+        };
+      }
+      return null;
+    }).filter(item => item !== null); 
+
     const updatedUser = await User.findOneAndUpdate(
       { email },
       { $set: { education } },
@@ -413,6 +418,19 @@ exports.UpUserExperience = async (req, res) => {
       return res.status(400).json({ error: "'experience' must be an array" });
     }
 
+    experience = experience.map(item => {
+      if (typeof item === "object" && item !== null) {
+        return {
+          company: item.company ? item.company.trim().substring(0, 100) : "",
+          role: item.role ? item.role.trim().substring(0, 100) : "",
+          description: item.description ? item.description.trim().substring(0, 2000) : "",
+          startDate: item.startDate ? item.startDate.trim().substring(0, 20) : "",
+          endDate: item.endDate ? item.endDate.trim().substring(0, 20) : "",
+        };
+      }
+      return null;
+    }).filter(item => item !== null);
+
     const updatedUser = await User.findOneAndUpdate(
       { email },
       { $set: { experience } },
@@ -444,6 +462,26 @@ exports.UpUserProjects = async (req, res) => {
     if (!Array.isArray(projects)) {
       return res.status(400).json({ error: "'projects' must be an array" });
     }
+     projects = projects.map(item => {
+      if (typeof item === "object" && item !== null) {
+        let techs = Array.isArray(item.technologies)
+          ? item.technologies
+              .map(t => (typeof t === "string" ? t.trim().substring(0, 20) : ""))
+              .filter(t => t)
+          : [];
+
+        return {
+          title: item.title ? item.title.trim().substring(0, 100) : "",
+          description: item.description ? item.description.trim().substring(0, 2000) : "",
+          link: item.link ? item.link.trim().substring(0, 1000) : "",
+          image: item.image ? item.image.trim().substring(0, 1000) : "",
+          technologies: techs,
+          startDate: item.startDate ? item.startDate.trim().substring(0, 20) : "",
+          endDate: item.endDate ? item.endDate.trim().substring(0, 20) : "",
+        };
+      }
+      return null;
+    }).filter(item => item !== null);
 
     const updatedUser = await User.findOneAndUpdate(
       { email },
@@ -471,7 +509,7 @@ exports.UpUserSocials = async (req, res) => {
     const sanitizedSocials = {};
     for (const key in socials) {
       if (typeof socials[key] === "string") {
-        sanitizedSocials[key] = sanitizeHtml(socials[key].trim());
+        sanitizedSocials[key] = sanitizeHtml(socials[key].trim()).substring(0, 500);
       }
     }
 
@@ -498,7 +536,7 @@ exports.UpUserTheme = async (req, res) => {
     if (theme === undefined || typeof theme !== "number") {
       return res.status(400).json({ error: "'theme' must be a number" });
     }
-
+    theme = String(theme).trim().substring(0, 20);
     const updatedUser = await User.findOneAndUpdate(
       { email },
       { $set: { theme } },
@@ -510,39 +548,6 @@ exports.UpUserTheme = async (req, res) => {
     res.json(updatedUser);
   } catch (error) {
     console.error("Error updating theme:", error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
-exports.migrateSocials = async (req, res) => {
-  try {
-    const users = await User.find({});
-
-    for (const user of users) {
-      if (user.socials && Object.keys(user.socials).length > 0) continue;
-
-      user.socials = {
-        fb: user.fb || "",
-        github: user.github || "",
-        instagram: user.instagram || "",
-        linkedin: user.linkedin || "",
-        twitter: user.twitter || "",
-        youtube: user.youtube || "",
-        telegram: user.telegram || "",
-        snapchat: user.snapchat || "",
-        whatsapp: user.whatsapp || "",
-        tiktok: user.tiktok || "",
-        reddit: user.reddit || "",
-        twitch: user.twitch || "",
-      };
-
-      // احفظ التغييرات
-      await user.save();
-    }
-
-    res.json({ message: "Socials migration completed for all users!" });
-  } catch (error) {
-    console.error("Migration error:", error);
     res.status(500).json({ error: error.message });
   }
 };
