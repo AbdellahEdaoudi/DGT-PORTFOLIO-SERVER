@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Links = require("../models/Links");
 const Contact = require("../models/Contacte");
 const Contacte = require("../models/Contacte");
+const Subscription = require("../models/Subscription");
 
 
 exports.GetDataApp = async (req, res) => {
@@ -11,17 +12,19 @@ exports.GetDataApp = async (req, res) => {
         if (email !== process.env.EMAIL) {
           return res.json({ success: false, message: "data count 0" });
         }
-        const [users,links,contacts] = await Promise.all([
+        const [users,links,contacts,subscription] = await Promise.all([
           User.find().collation({ locale: "en", strength: 1 }).sort({ fullname: 1 })
-          .select(" fullname email username country category createdAt").lean(),
+          .select(" fullname email username country category createdAt urlimage").lean(),
           Links.find().select("-__v").lean(),
           Contact.find().select("-__v").lean(),
+          Subscription.find().select("-__v").lean(),
         ]);
         res.status(200).json({
           success: true,
           users,
           links,
-          contacts
+          contacts,
+          subscription
         });
         } catch (error) {
           res.status(500).json({ success: false, error: error.message });

@@ -29,6 +29,8 @@ app.use('/users', require('./routes/userRoutes'));
 app.use('/links', require('./routes/linksRoutes'));
 app.use('/contacts', require('./routes/contactsRoutes'));
 app.use('/admin', require('./routes/adminRoutes'));
+app.use('/api/paypal', require('./routes/paypalRoutes'));
+app.use('/api/subscriptions',require('./routes/subscriptionRoutes'));
 
 
 // Serve Static Files and Handle 404

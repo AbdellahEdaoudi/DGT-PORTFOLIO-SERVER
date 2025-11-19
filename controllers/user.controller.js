@@ -2,6 +2,11 @@ const User = require('../models/User');
 const Links = require('../models/Links');
 const cloudinary = require("../utils/cloudinary");
 const sanitizeHtml = require('sanitize-html');
+const fetch = require('node-fetch');
+const Subscription = require('../models/Subscription');
+const CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
+const SECRET = process.env.PAYPAL_SECRET;
+const BASE = process.env.BASE; // استخدم Live لاحقًا https://api-m.paypal.com
 
 const capitalizeWords = (str) => {
   return str
@@ -10,6 +15,34 @@ const capitalizeWords = (str) => {
     .replace(/\s+/g, ' ');
 };
 
+
+// الحصول على توكن الوصول من PayPal
+async function getAccessToken() {
+  const res = await fetch(`${BASE}/v1/oauth2/token`, {
+    method: 'POST',
+    headers: { 
+      'Authorization': 'Basic ' + Buffer.from(CLIENT_ID + ':' + SECRET).toString('base64'),
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: 'grant_type=client_credentials'
+  });
+  const data = await res.json();
+  return data.access_token;
+}
+async function getPayPalSubscriptionStatus(subscriptionID) {
+  const accessToken = await getAccessToken();
+
+  const res = await fetch(`${BASE}/v1/billing/subscriptions/${subscriptionID}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  const data = await res.json();
+  return data.status; // ACTIVE, SUSPENDED, CANCELLED, EXPIRED
+}
 // 🟢 Get all users
 exports.getUsers = async (req, res) => {
   try {
@@ -372,7 +405,9 @@ exports.UpUserEducation = async (req, res) => {
     if (!Array.isArray(education)) {
       return res.status(400).json({ error: "'education' must be an array" });
     }
-
+    education = education.filter(item =>
+      Object.values(item || {}).some(v => v && v.toString().trim() !== "")
+    );
     education = education.map(item => {
       if (typeof item === "object" && item !== null) {
         return {
@@ -417,7 +452,9 @@ exports.UpUserExperience = async (req, res) => {
     if (!Array.isArray(experience)) {
       return res.status(400).json({ error: "'experience' must be an array" });
     }
-
+    experience = experience.filter(item =>
+      Object.values(item || {}).some(v => v && v.toString().trim() !== "")
+    );
     experience = experience.map(item => {
       if (typeof item === "object" && item !== null) {
         return {
@@ -462,6 +499,9 @@ exports.UpUserProjects = async (req, res) => {
     if (!Array.isArray(projects)) {
       return res.status(400).json({ error: "'projects' must be an array" });
     }
+    projects = projects.filter(p =>
+      Object.values(p).some(v => v && v.toString().trim() !== "")
+    );
      projects = projects.map(item => {
       if (typeof item === "object" && item !== null) {
         let techs = Array.isArray(item.technologies)
@@ -573,13 +613,47 @@ exports.getUserByEmail = async (req, res) => {
 // 🟢 Get user by username
 exports.getUserByUsername = async (req, res) => {
   const { username } = req.params;
-  try {
-    const user = await User.findOne({ username }).select("-__v");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+  const user = await User.findOne({ username }).select("-__v");
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  const whitelist = [
+    "liam.carter.dev@gmail.com",
+    "abdellahedaoudi80@gmail.com",
+    "soondiss8@gmail.com",
+    "dgt.portfolio.ma@gmail.com"
+  ];
+  if (whitelist.includes(user.email)) {
     const links = await Links.find({ useremail: user.email }).select("namelink link");
-
+    return res.status(200).json({
+      status: 200,
+      user,
+      links,
+      note: "User is whitelisted, subscription check skipped."
+    });
+  }
+  let subscription;
+  try {
+    subscription = await Subscription.findOne({ userEmail: user.email });
+    if (!subscription) {
+      return res.status(404).json({ message: "No subscription found for this user",email:user.email});
+    }
+    console.log("Checking PayPal subscription ID:", subscription.subscriptionID);
+    const status = await getPayPalSubscriptionStatus(subscription.subscriptionID);
+    console.log("PayPal subscription status:", status);
+    if (subscription.status !== status) {
+      subscription.status = status;
+      await subscription.save();
+    }
+  } catch (err) {
+    console.error("Error checking subscription status:", err);
+    return res.status(500).json({ message: "Unable to verify subscription status" });
+  }
+  if (subscription.status !== "ACTIVE") {
+    return res.status(403).json({ message: "Your subscription is not active. Please renew or subscribe." });
+  }
+  const links = await Links.find({ useremail: user.email }).select("namelink link");
+  try {
     res.status(200).json({
       status:200,
       user,
