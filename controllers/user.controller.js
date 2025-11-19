@@ -197,8 +197,11 @@ exports.UpUserInfo = async (req, res) => {
     //     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     //     .join(" ");
     // }
+    if (userData.fullname){
+      userData.fullname = userData.fullname.substring(0,50);
+    }
     if (userData.username) {
-      userData.username = userData.username.replace(/[.\s]/g, "").toLowerCase().substring(0, 100);
+      userData.username = userData.username.replace(/[.\s]/g, "").toLowerCase().substring(0, 30);
       const existingUser = await User.findOne({ username: userData.username });
       if (existingUser && existingUser.email !== email)
         return res.status(400).json({ error: "Username already exists" });
@@ -331,7 +334,7 @@ exports.UpUserServices = async (req, res) => {
     }
     services = services.map(serv => {
       if (typeof serv === "string") {
-        return serv.trim().substring(0, 50);
+        return serv.trim().substring(0, 100);
       }
       return "";
     }).filter(serv => serv);
