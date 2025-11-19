@@ -57,6 +57,6 @@ const userSchema = new mongoose.Schema({
     twitch: String,
   },
   theme:Number
-});
+},{ timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

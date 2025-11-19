@@ -623,7 +623,11 @@ exports.getUserByUsername = async (req, res) => {
     "soondiss8@gmail.com",
     "dgt.portfolio.ma@gmail.com"
   ];
-  if (whitelist.includes(user.email)) {
+  const createdAt = new Date(user.createdAt);
+  const sevenDaysLater = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const now = new Date();
+  const isWithin7Days = sevenDaysLater > now;
+  if (whitelist.includes(user.email) || isWithin7Days ) {
     const links = await Links.find({ useremail: user.email }).select("namelink link");
     return res.status(200).json({
       status: 200,
