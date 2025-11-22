@@ -329,7 +329,7 @@ exports.UpUserServices = async (req, res) => {
     }
     services = services.map(serv => {
       if (typeof serv === "string") {
-        return serv.trim().substring(0, 100);
+        return serv.trim().substring(0, 150);
       }
       return "";
     }).filter(serv => serv);
