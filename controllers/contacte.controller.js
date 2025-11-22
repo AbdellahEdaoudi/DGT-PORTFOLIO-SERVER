@@ -40,6 +40,9 @@ exports.createContact = async (req, res) => {
       ContactData[key] = sanitizeHtml(ContactData[key]);
     }
   }
+  if (ContactData.message && ContactData.message.length > 500) {
+  return res.status(400).json({ success: false, message: "Message too long" });
+  }
   try {
     const newContact = new Contacte(ContactData);
     const savedContact = await newContact.save();

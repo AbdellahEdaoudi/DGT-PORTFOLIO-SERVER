@@ -14,8 +14,6 @@ const capitalizeWords = (str) => {
     .replace(/\b\w/g, (char) => char.toUpperCase())
     .replace(/\s+/g, ' ');
 };
-
-
 // الحصول على توكن الوصول من PayPal
 async function getAccessToken() {
   const res = await fetch(`${BASE}/v1/oauth2/token`, {
@@ -52,7 +50,6 @@ exports.getUsers = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 // 🟢 Create user
 exports.createUser = async (req, res) => {
   const userData = req.body;
@@ -91,13 +88,12 @@ exports.createUser = async (req, res) => {
       });
     }
     const newUser = await User.create(userData);
-    res.json(newUser);
+    return res.status(201).json(newUser);
   } catch (error) {
     console.error("❌ Error creating user:", error.message);
     return res.status(500).json({ error: error.message });
   }
 };
-
 // 🟢 Update user by email
 exports.updateUserByEmail = async (req, res) => {
   const { email } = req.params;
@@ -175,7 +171,6 @@ exports.updateUserByEmail = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 // 🟢 UpUserInfo
 exports.UpUserInfo = async (req, res) => {
   const { email } = req.user;
@@ -594,7 +589,6 @@ exports.UpUserTheme = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 // 🟢 Get user by email
 exports.getUserByEmail = async (req, res) => {
   const { email } = req.params;
@@ -612,7 +606,6 @@ exports.getUserByEmail = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-
 // 🟢 Get user by username
 exports.getUserByUsername = async (req, res) => {
   const { username } = req.params;
@@ -670,7 +663,6 @@ exports.getUserByUsername = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 // 🟢 Get user by username
 exports.getUserByUsernameMeta = async (req, res) => {
   const { username } = req.params;
