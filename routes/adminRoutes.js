@@ -4,10 +4,11 @@ const AdminController = require("../controllers/admin.controller");
 const isAuthenticated = require('../middlewares/isAuthenticated');
 
 // User Routes
-app.get('/appdata',isAuthenticated,AdminController.GetDataApp);
-app.delete('/user/:id',isAuthenticated,AdminController.deleteUserById);
-app.delete('/contacte/:id',isAuthenticated, AdminController.deleteContactById);
-app.delete('/link/:id',isAuthenticated, AdminController.deleteLinkById);
+app.get('/appdata', isAuthenticated, AdminController.GetDataApp);
+app.delete('/user/:id', isAuthenticated, AdminController.deleteUserById);
+app.delete('/contacte/:id', isAuthenticated, AdminController.deleteContactById);
+app.delete('/link/:id', isAuthenticated, AdminController.deleteLinkById);
+app.delete('/promo/:id', isAuthenticated, AdminController.deletePromoById);
 
 
 module.exports = app;

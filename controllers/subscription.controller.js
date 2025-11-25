@@ -18,7 +18,7 @@ async function getAccessToken() {
 
 exports.createSubscription = async (req, res) => {
   try {
-    const { userEmail, planId, subscriptionID, nameplan } = req.body;
+    const { userEmail, planId, subscriptionID, nameplan, promoCode } = req.body;
 
     if (!userEmail || !planId || !subscriptionID || !nameplan) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -40,6 +40,7 @@ exports.createSubscription = async (req, res) => {
       planId,
       nameplan,
       subscriptionID,
+      promoCode,
       paymentType: "subscription",
       status: "ACTIVE",
       expiresAt: null

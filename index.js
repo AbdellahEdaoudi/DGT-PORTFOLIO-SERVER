@@ -31,6 +31,7 @@ app.use('/contacts', require('./routes/contactsRoutes'));
 app.use('/admin', require('./routes/adminRoutes'));
 app.use('/api/paypal', require('./routes/paypalRoutes'));
 app.use('/api/subscriptions',require('./routes/subscriptionRoutes'));
+app.use("/api/promo", require('./routes/promoRoutes'));
 
 
 // Serve Static Files and Handle 404
