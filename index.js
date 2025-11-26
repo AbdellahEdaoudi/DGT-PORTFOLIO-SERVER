@@ -20,23 +20,23 @@ app.listen(PORT, () => {
 connectDB()
 app.use(cors(corsOption));
 app.use(cookiesParser())
-app.use(express.json({ limit: "4mb"}));
+app.use(express.json({ limit: "4mb" }));
 app.use(express.urlencoded({ limit: "4mb", extended: true }));
 
 // General Route
-app.get("/alldata",isAuthenticated,generalController.getAllData);
+app.get("/alldata", isAuthenticated, generalController.getAllData);
 app.use('/users', require('./routes/userRoutes'));
 app.use('/links', require('./routes/linksRoutes'));
 app.use('/contacts', require('./routes/contactsRoutes'));
 app.use('/admin', require('./routes/adminRoutes'));
 app.use('/api/paypal', require('./routes/paypalRoutes'));
-app.use('/api/subscriptions',require('./routes/subscriptionRoutes'));
+app.use('/api/subscriptions', require('./routes/subscriptionRoutes'));
 app.use("/api/promo", require('./routes/promoRoutes'));
-
+app.use("/api/webhook", require('./routes/WebhookRoute'));
 
 // Serve Static Files and Handle 404
 app.use("/", express.static(path.join(__dirname, "public")));
-app.get('/', (req, res) => {res.sendFile(path.join(__dirname, "./Views/index.html"))})
+app.get('/', (req, res) => { res.sendFile(path.join(__dirname, "./Views/index.html")) })
 app.all("*", (req, res) => {
   res.status(404);
   if (req.accepts("html")) {

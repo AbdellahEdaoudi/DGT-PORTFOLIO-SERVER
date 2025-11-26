@@ -632,36 +632,19 @@ exports.getUserByUsername = async (req, res) => {
       note: "User is whitelisted, subscription check skipped."
     });
   }
-  let subscription;
-  try {
-    subscription = await Subscription.findOne({ userEmail: user.email });
+    const subscription = await Subscription.findOne({ userEmail: user.email });
     if (!subscription) {
       return res.status(404).json({ message: "No subscription found for this user", email: user.email });
     }
-    console.log("Checking PayPal subscription ID:", subscription.subscriptionID);
-    const status = await getPayPalSubscriptionStatus(subscription.subscriptionID);
-    console.log("PayPal subscription status:", status);
-    if (subscription.status !== status) {
-      subscription.status = status;
-      await subscription.save();
+    if (subscription.status !== "ACTIVE") {
+      return res.status(403).json({ message: "Your subscription is not active. Please renew or subscribe." });
     }
-  } catch (err) {
-    console.error("Error checking subscription status:", err);
-    return res.status(500).json({ message: "Unable to verify subscription status" });
-  }
-  if (subscription.status !== "ACTIVE") {
-    return res.status(403).json({ message: "Your subscription is not active. Please renew or subscribe." });
-  }
-  const links = await Links.find({ useremail: user.email }).select("namelink link");
-  try {
+    const links = await Links.find({ useremail: user.email }).select("namelink link");
     res.status(200).json({
       status: 200,
       user,
       links,
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
 };
 // 🟢 Get user by username
 exports.getUserByUsernameMeta = async (req, res) => {
