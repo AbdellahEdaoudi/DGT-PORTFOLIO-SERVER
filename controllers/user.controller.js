@@ -18,7 +18,7 @@ const capitalizeWords = (str) => {
 async function getAccessToken() {
   const res = await fetch(`${BASE}/v1/oauth2/token`, {
     method: 'POST',
-    headers: { 
+    headers: {
       'Authorization': 'Basic ' + Buffer.from(CLIENT_ID + ':' + SECRET).toString('base64'),
       'Content-Type': 'application/x-www-form-urlencoded'
     },
@@ -192,8 +192,8 @@ exports.UpUserInfo = async (req, res) => {
     //     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     //     .join(" ");
     // }
-    if (userData.fullname){
-      userData.fullname = userData.fullname.substring(0,50);
+    if (userData.fullname) {
+      userData.fullname = userData.fullname.substring(0, 50);
     }
     if (userData.username) {
       userData.username = userData.username.replace(/[.\s]/g, "").toLowerCase().substring(0, 30);
@@ -220,7 +220,7 @@ exports.UpUserInfo = async (req, res) => {
   }
 };
 exports.UpUserAbout = async (req, res) => {
-  const { email } = req.user; 
+  const { email } = req.user;
   try {
     let { about } = req.body;
 
@@ -247,7 +247,7 @@ exports.UpUserAbout = async (req, res) => {
   }
 };
 exports.UpUserBgColor = async (req, res) => {
-  const { email } = req.user; 
+  const { email } = req.user;
 
   try {
     let { bgcolorp } = req.body;
@@ -417,7 +417,7 @@ exports.UpUserEducation = async (req, res) => {
         };
       }
       return null;
-    }).filter(item => item !== null); 
+    }).filter(item => item !== null);
 
     const updatedUser = await User.findOneAndUpdate(
       { email },
@@ -500,12 +500,12 @@ exports.UpUserProjects = async (req, res) => {
     projects = projects.filter(p =>
       Object.values(p).some(v => v && v.toString().trim() !== "")
     );
-     projects = projects.map(item => {
+    projects = projects.map(item => {
       if (typeof item === "object" && item !== null) {
         let techs = Array.isArray(item.technologies)
           ? item.technologies
-              .map(t => (typeof t === "string" ? t.trim().substring(0, 20) : ""))
-              .filter(t => t)
+            .map(t => (typeof t === "string" ? t.trim().substring(0, 20) : ""))
+            .filter(t => t)
           : [];
 
         return {
@@ -623,7 +623,7 @@ exports.getUserByUsername = async (req, res) => {
   const sevenDaysLater = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
   const now = new Date();
   const isWithin7Days = sevenDaysLater > now;
-  if (whitelist.includes(user.email) || isWithin7Days ) {
+  if (whitelist.includes(user.email) || isWithin7Days) {
     const links = await Links.find({ useremail: user.email }).select("namelink link");
     return res.status(200).json({
       status: 200,
@@ -636,7 +636,7 @@ exports.getUserByUsername = async (req, res) => {
   try {
     subscription = await Subscription.findOne({ userEmail: user.email });
     if (!subscription) {
-      return res.status(404).json({ message: "No subscription found for this user",email:user.email});
+      return res.status(404).json({ message: "No subscription found for this user", email: user.email });
     }
     console.log("Checking PayPal subscription ID:", subscription.subscriptionID);
     const status = await getPayPalSubscriptionStatus(subscription.subscriptionID);
@@ -655,7 +655,7 @@ exports.getUserByUsername = async (req, res) => {
   const links = await Links.find({ useremail: user.email }).select("namelink link");
   try {
     res.status(200).json({
-      status:200,
+      status: 200,
       user,
       links,
     });
@@ -668,16 +668,36 @@ exports.getUserByUsernameMeta = async (req, res) => {
   const { username } = req.params;
   try {
     const user = await User.findOne({ username })
-    .select("fullname email phoneNumber urlimage about category");
+      .select("fullname email phoneNumber urlimage about category");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     res.json({
-      status:true,
+      status: true,
       user,
     });
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// 🟢 Get all usernames for sitemap (no conditions)
+exports.getActiveUsernames = async (req, res) => {
+  try {
+    // Get all users that have a username
+    const allUsers = await User.find({
+      username: { $exists: true, $ne: "" }
+    })
+    .select("username")
+    .lean();
+
+    // Extract usernames
+    const usernames = allUsers.map(user => user.username);
+
+    res.json({ usernames });
+  } catch (error) {
+    console.error("Error fetching usernames:", error);
     res.status(500).json({ error: error.message });
   }
 };

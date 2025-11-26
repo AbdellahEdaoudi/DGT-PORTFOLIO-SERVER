@@ -11,8 +11,8 @@ app.get('/username/:username', UserController.getUserByUsername);
 app.get('/metauser/:username', UserController.getUserByUsernameMeta);
 app.post('/', isAuthenticated, UserController.createUser);
 // Update User Data
-app.put('/:email',isAuthenticated,upload.single('urlimage'), UserController.updateUserByEmail); 
-app.put("/update/user-info",isAuthenticated, upload.single("urlimage"), UserController.UpUserInfo);
+app.put('/:email', isAuthenticated, upload.single('urlimage'), UserController.updateUserByEmail);
+app.put("/update/user-info", isAuthenticated, upload.single("urlimage"), UserController.UpUserInfo);
 app.put("/update/about", isAuthenticated, UserController.UpUserAbout);
 app.put("/update/bgcolor", isAuthenticated, UserController.UpUserBgColor);
 app.put("/update/languages", isAuthenticated, UserController.UpUserLanguages);
@@ -23,6 +23,6 @@ app.put("/update/experience", isAuthenticated, UserController.UpUserExperience);
 app.put("/update/projects", isAuthenticated, UserController.UpUserProjects);
 app.put("/update/socials", isAuthenticated, UserController.UpUserSocials);
 app.put("/update/theme", isAuthenticated, UserController.UpUserTheme);
-
+app.get('/active-usernames', UserController.getActiveUsernames);
 
 module.exports = app;
