@@ -651,7 +651,7 @@ exports.getUserByUsernameMeta = async (req, res) => {
   const { username } = req.params;
   try {
     const user = await User.findOne({ username })
-      .select("fullname email phoneNumber urlimage about category");
+      .select("fullname email phoneNumber urlimage about category socials");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
