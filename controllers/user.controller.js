@@ -184,14 +184,6 @@ exports.UpUserInfo = async (req, res) => {
         userData[f] = val.substring(0, 100);
       }
     });
-
-    // if (userData.fullname) {
-    //   userData.fullname = userData.fullname
-    //     .split(/\s+/)
-    //     .slice(0, 2)
-    //     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    //     .join(" ");
-    // }
     if (userData.fullname) {
       userData.fullname = userData.fullname.substring(0, 50);
     }
@@ -202,8 +194,21 @@ exports.UpUserInfo = async (req, res) => {
         return res.status(400).json({ error: "Username already exists" });
     }
     if (req.file) {
+      if (req.file.size > 200 * 1024) {
+        const fs = require('fs');
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({ error: "Image size must not exceed 200KB" });
+      }
       const up = await cloudinary.uploader.upload(req.file.path);
       userData.urlimage = up.secure_url;
+
+      const currentUser = await User.findOne({ email });
+      if (currentUser?.urlimage) {
+        const publicId = currentUser.urlimage.split('/').pop().split('.')[0];
+        if (publicId) {
+          await cloudinary.uploader.destroy(publicId);
+        }
+      }
     }
     const updatedUser = await User.findOneAndUpdate(
       { email },
@@ -632,19 +637,19 @@ exports.getUserByUsername = async (req, res) => {
       note: "User is whitelisted, subscription check skipped."
     });
   }
-    const subscription = await Subscription.findOne({ userEmail: user.email });
-    if (!subscription) {
-      return res.status(404).json({ message: "No subscription found for this user", email: user.email });
-    }
-    if (subscription.status !== "ACTIVE") {
-      return res.status(403).json({ message: "Your subscription is not active. Please renew or subscribe." });
-    }
-    const links = await Links.find({ useremail: user.email }).select("namelink link");
-    res.status(200).json({
-      status: 200,
-      user,
-      links,
-    });
+  const subscription = await Subscription.findOne({ userEmail: user.email });
+  if (!subscription) {
+    return res.status(404).json({ message: "No subscription found for this user", email: user.email });
+  }
+  if (subscription.status !== "ACTIVE") {
+    return res.status(403).json({ message: "Your subscription is not active. Please renew or subscribe." });
+  }
+  const links = await Links.find({ useremail: user.email }).select("namelink link");
+  res.status(200).json({
+    status: 200,
+    user,
+    links,
+  });
 };
 // 🟢 Get user by username
 exports.getUserByUsernameMeta = async (req, res) => {
@@ -672,8 +677,8 @@ exports.getActiveUsernames = async (req, res) => {
     const allUsers = await User.find({
       username: { $exists: true, $ne: "" }
     })
-    .select("username")
-    .lean();
+      .select("username")
+      .lean();
 
     // Extract usernames
     const usernames = allUsers.map(user => user.username);
