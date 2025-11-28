@@ -619,7 +619,7 @@ exports.getUserByUsername = async (req, res) => {
     return res.status(404).json({ message: "User not found" });
   }
   const whitelist = [
-    "liam.carter.dev@gmail.com",
+    "adam.carter.dev@gmail.com",
     "abdellahedaoudi80@gmail.com",
     "soondiss8@gmail.com",
     "dgt.portfolio.ma@gmail.com"
