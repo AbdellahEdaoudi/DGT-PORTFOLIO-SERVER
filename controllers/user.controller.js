@@ -76,7 +76,7 @@ exports.createUser = async (req, res) => {
     if (userData.username.length > 20) {
       userData.username = userData.username.substring(0, 20);
     }
-    userData.username = userData.username.replace(/\s/g, '').toLowerCase();
+    userData.username = userData.username.replace(/[.\s/]/g, "").toLowerCase();
   }
 
   try {
