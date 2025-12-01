@@ -5,14 +5,20 @@ const Links = require("../models/Links");
 exports.getAllData = async (req, res) => {
   try {
     const email = req.user?.email;
+
     const findemail = await User.findOne({ email });
     if (!findemail) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res.status(401).json({
+        success: false,
+        message: "User not found"
+      });
     }
+
     const [users, links] = await Promise.all([
       User.findOne({ email })
         .select("-updatedAt -createdAt -__v")
         .lean(),
+
       Links.find({ useremail: email })
         .select("-createdAt -updatedAt -__v")
         .lean(),
