@@ -23,6 +23,7 @@ app.put("/update/experience", isAuthenticated, UserController.UpUserExperience);
 app.put("/update/projects", isAuthenticated, UserController.UpUserProjects);
 app.put("/update/socials", isAuthenticated, UserController.UpUserSocials);
 app.put("/update/theme", isAuthenticated, UserController.UpUserTheme);
+app.put("/update/display-language", isAuthenticated, UserController.UpUserDisplayLanguage);
 app.get('/active-usernames', UserController.getActiveUsernames);
 
 module.exports = app;

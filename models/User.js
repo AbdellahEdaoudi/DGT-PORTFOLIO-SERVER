@@ -56,7 +56,12 @@ const userSchema = new mongoose.Schema({
     reddit: String,
     twitch: String,
   },
-  theme:Number
-},{ timestamps: true });
+  theme: Number,
+  displayLanguage: {
+    type: String,
+    default: "en",
+    enum: ["en", "fr", "ar", "de", "ru", "ja", "zh"],
+  },
+}, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

@@ -594,6 +594,35 @@ exports.UpUserTheme = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+exports.UpUserDisplayLanguage = async (req, res) => {
+  const { email } = req.user;
+
+  try {
+    let { displayLanguage } = req.body;
+
+    if (!displayLanguage || typeof displayLanguage !== "string") {
+      return res.status(400).json({ error: "'displayLanguage' must be a string" });
+    }
+
+    const validLanguages = ["en", "fr", "ar", "de", "ru", "ja", "zh"];
+    if (!validLanguages.includes(displayLanguage)) {
+      return res.status(400).json({ error: "Invalid language. Must be one of: en, fr, ar, de, ru, ja, zh" });
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { email },
+      { $set: { displayLanguage } },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ message: "User not found" });
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating display language:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
 // 🟢 Get user by email
 exports.getUserByEmail = async (req, res) => {
   const { email } = req.params;
