@@ -60,7 +60,7 @@ const userSchema = new mongoose.Schema({
   displayLanguage: {
     type: String,
     default: "en",
-    enum: ["en", "fr", "ar", "de", "ru", "ja", "zh"],
+    enum: ["en", "fr", "ar", "de", "ru", "ja", "zh", "es"],
   },
 }, { timestamps: true });
 
