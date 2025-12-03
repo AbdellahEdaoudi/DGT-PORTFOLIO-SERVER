@@ -33,6 +33,7 @@ app.use('/api/paypal', require('./routes/paypalRoutes'));
 app.use('/api/subscriptions', require('./routes/subscriptionRoutes'));
 app.use("/api/promo", require('./routes/promoRoutes'));
 app.use("/api/webhook", require('./routes/WebhookRoute'));
+app.use("/api/custom-domain", require('./routes/customDomainRoutes'));
 
 // Serve Static Files and Handle 404
 app.use("/", express.static(path.join(__dirname, "public")));

@@ -62,6 +62,16 @@ const userSchema = new mongoose.Schema({
     default: "en",
     enum: ["en", "fr", "ar", "de", "ru", "ja", "zh", "es"],
   },
+  customDomain: {
+    type: String,
+    default: null,
+    unique: true,
+    sparse: true, // Allows multiple null values
+  },
+  customDomainVerified: {
+    type: Boolean,
+    default: false,
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);
