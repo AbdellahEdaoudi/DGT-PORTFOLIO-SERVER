@@ -11,7 +11,7 @@ const VERCEL_API_TOKEN = process.env.VERCEL_API_TOKEN;
 const addToVercel = async (domain) => {
     if (!VERCEL_PROJECT_ID || !VERCEL_API_TOKEN) {
         console.log("⚠️ Vercel credentials missing. Skipping auto-add.");
-        return false;
+        return { success: false, error: "Server misconfigured: Missing Vercel credentials" };
     }
     try {
         console.log(`Adding ${domain} to Vercel...`);
@@ -21,18 +21,34 @@ const addToVercel = async (domain) => {
             { headers: { Authorization: `Bearer ${VERCEL_API_TOKEN}` } }
         );
         console.log(`✅ ${domain} added to Vercel!`);
-        return true;
+        return { success: true };
     } catch (error) {
-        if (error.response?.status === 409) return true; // Already exists
+        if (error.response?.status === 409) return { success: true }; // Already exists
         console.error("❌ Vercel API Error:", error.response?.data || error.message);
-        return false;
+        return { success: false, error: error.response?.data?.error?.message || "Failed to register domain with Vercel" };
+    }
+};
+
+// Helper: Remove Domain from Vercel Project
+const removeFromVercel = async (domain) => {
+    if (!VERCEL_PROJECT_ID || !VERCEL_API_TOKEN) return;
+    try {
+        console.log(`Removing ${domain} from Vercel...`);
+        await axios.delete(
+            `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains/${domain}${VERCEL_TEAM_ID ? `?teamId=${VERCEL_TEAM_ID}` : ''}`,
+            { headers: { Authorization: `Bearer ${VERCEL_API_TOKEN}` } }
+        );
+        console.log(`✅ ${domain} removed from Vercel!`);
+    } catch (error) {
+        console.error("❌ Vercel Remove Error:", error.response?.data || error.message);
     }
 };
 
 // Add or Update Custom Domain
 exports.setCustomDomain = async (req, res) => {
+    const email = req.user?.email;
     try {
-        const { email, customDomain } = req.body;
+        const { customDomain } = req.body;
         if (!email || !customDomain) return res.status(400).json({ status: false, message: "Required fields missing" });
 
         // Validate domain format (Apex only)
@@ -61,21 +77,27 @@ exports.setCustomDomain = async (req, res) => {
 
 // Verify Custom Domain
 exports.verifyCustomDomain = async (req, res) => {
+    const email = req.user?.email;
     try {
-        const { email } = req.body;
         const user = await User.findOne({ email });
         if (!user?.customDomain) return res.status(404).json({ status: false, message: "No domain found" });
 
         const domain = user.customDomain;
 
-        // 1. Check DNS (A Record)
+        // 1. Check DNS (A Record) - Just verify domain resolves
         try {
             const records = await dns.resolve4(domain).catch(() => []);
-            const isPointingToVercel = records.includes('76.76.21.21');
 
-            if (isPointingToVercel) {
-                // 2. IMPORTANT: Add to Vercel automatically
-                await addToVercel(domain);
+            if (records.length > 0) {
+                // 2. Add to Vercel automatically
+                const vercelResult = await addToVercel(domain);
+
+                if (!vercelResult.success) {
+                    return res.status(500).json({
+                        status: false,
+                        message: vercelResult.error || "Failed to configure domain on server."
+                    });
+                }
 
                 // 3. Update DB
                 user.customDomainVerified = true;
@@ -89,7 +111,7 @@ exports.verifyCustomDomain = async (req, res) => {
             } else {
                 return res.status(400).json({
                     status: false,
-                    message: "DNS not ready. Please ensure A Record points to 76.76.21.21",
+                    message: "DNS not ready. Please ensure your domain has a valid A Record configured.",
                 });
             }
         } catch (e) {
@@ -114,10 +136,20 @@ exports.getUserByDomain = async (req, res) => {
 
 // Remove Domain
 exports.removeCustomDomain = async (req, res) => {
-    const { email } = req.body;
-    // Optional: Remove from Vercel API here if needed
-    await User.findOneAndUpdate({ email }, { customDomain: null, customDomainVerified: false });
-    res.json({ status: true, message: "Removed" });
+    try {
+        const email = req.user?.email;
+        const user = await User.findOne({ email });
+
+        if (user?.customDomain) {
+            // Remove from Vercel
+            await removeFromVercel(user.customDomain);
+        }
+
+        await User.findOneAndUpdate({ email }, { customDomain: null, customDomainVerified: false });
+        res.json({ status: true, message: "Removed" });
+    } catch (error) {
+        res.status(500).json({ status: false, message: error.message });
+    }
 };
 
 exports.getCustomDomainSettings = async (req, res) => {
