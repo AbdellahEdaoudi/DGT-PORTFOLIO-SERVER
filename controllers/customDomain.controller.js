@@ -14,16 +14,24 @@ const addToVercel = async (domain) => {
         return { success: false, error: "Server misconfigured: Missing Vercel credentials" };
     }
     try {
-        console.log(`Adding ${domain} to Vercel...`);
+        const apiUrl = `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains${VERCEL_TEAM_ID ? `?teamId=${VERCEL_TEAM_ID}` : ''}`;
+        console.log(`🔍 Adding ${domain} to Vercel...`);
+        console.log(`📋 Project ID: ${VERCEL_PROJECT_ID}`);
+        console.log(`📋 Team ID: ${VERCEL_TEAM_ID || 'Not set'}`);
+        console.log(`📋 API URL: ${apiUrl}`);
+
         await axios.post(
-            `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains${VERCEL_TEAM_ID ? `?teamId=${VERCEL_TEAM_ID}` : ''}`,
+            apiUrl,
             { name: domain },
             { headers: { Authorization: `Bearer ${VERCEL_API_TOKEN}` } }
         );
-        console.log(`✅ ${domain} added to Vercel!`);
+        console.log(`✅ ${domain} added to Vercel successfully!`);
         return { success: true };
     } catch (error) {
-        if (error.response?.status === 409) return { success: true }; // Already exists
+        if (error.response?.status === 409) {
+            console.log(`ℹ️ ${domain} already exists in Vercel`);
+            return { success: true }; // Already exists
+        }
         console.error("❌ Vercel API Error:", error.response?.data || error.message);
         return { success: false, error: error.response?.data?.error?.message || "Failed to register domain with Vercel" };
     }
