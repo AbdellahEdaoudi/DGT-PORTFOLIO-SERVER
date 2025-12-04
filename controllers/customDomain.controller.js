@@ -3,9 +3,9 @@ const dns = require('dns').promises;
 const axios = require('axios');
 
 // Vercel Configuration
-const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID;
+const VERCEL_PROJECT_ID = 'prj_1YB2VMizsGLqXBsNIV1XAZGUWoIG';
 const VERCEL_TEAM_ID = process.env.VERCEL_TEAM_ID;
-const VERCEL_API_TOKEN = process.env.VERCEL_API_TOKEN;
+const VERCEL_API_TOKEN = 'lkAcW7Zhn4hvbkZjkykR1Thd';
 
 // Helper: Add Domain to Vercel Project
 const addToVercel = async (domain) => {
