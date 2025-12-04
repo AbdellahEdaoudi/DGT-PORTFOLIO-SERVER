@@ -699,20 +699,26 @@ exports.getUserByUsernameMeta = async (req, res) => {
   }
 };
 
-// 🟢 Get all usernames for sitemap (no conditions)
+// 🟢 Get all usernames for sitemap (including custom domains)
 exports.getActiveUsernames = async (req, res) => {
   try {
     // Get all users that have a username
     const allUsers = await User.find({
       username: { $exists: true, $ne: "" }
     })
-      .select("username")
+      .select("username customDomain customDomainVerified")
       .lean();
 
-    // Extract usernames
+    // Extract usernames and custom domains
     const usernames = allUsers.map(user => user.username);
+    const customDomains = allUsers
+      .filter(user => user.customDomain && user.customDomainVerified)
+      .map(user => ({
+        username: user.username,
+        customDomain: user.customDomain
+      }));
 
-    res.json({ usernames });
+    res.json({ usernames, customDomains });
   } catch (error) {
     console.error("Error fetching usernames:", error);
     res.status(500).json({ error: error.message });
