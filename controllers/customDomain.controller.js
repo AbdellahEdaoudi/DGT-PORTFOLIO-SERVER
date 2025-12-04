@@ -39,16 +39,25 @@ const addToVercel = async (domain) => {
 
 // Helper: Remove Domain from Vercel Project
 const removeFromVercel = async (domain) => {
-    if (!VERCEL_PROJECT_ID || !VERCEL_API_TOKEN) return;
+    if (!VERCEL_PROJECT_ID || !VERCEL_API_TOKEN) {
+        console.log("⚠️ Vercel credentials missing. Skipping domain removal.");
+        return;
+    }
     try {
-        console.log(`Removing ${domain} from Vercel...`);
+        const apiUrl = `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains/${domain}${VERCEL_TEAM_ID ? `?teamId=${VERCEL_TEAM_ID}` : ''}`;
+        console.log(`🗑️ Removing ${domain} from Vercel...`);
+        console.log(`📋 Project ID: ${VERCEL_PROJECT_ID}`);
+        console.log(`📋 Team ID: ${VERCEL_TEAM_ID || 'Not set'}`);
+        console.log(`📋 API URL: ${apiUrl}`);
+
         await axios.delete(
-            `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains/${domain}${VERCEL_TEAM_ID ? `?teamId=${VERCEL_TEAM_ID}` : ''}`,
+            apiUrl,
             { headers: { Authorization: `Bearer ${VERCEL_API_TOKEN}` } }
         );
-        console.log(`✅ ${domain} removed from Vercel!`);
+        console.log(`✅ ${domain} removed from Vercel successfully!`);
     } catch (error) {
         console.error("❌ Vercel Remove Error:", error.response?.data || error.message);
+        console.error("❌ Status Code:", error.response?.status);
     }
 };
 
