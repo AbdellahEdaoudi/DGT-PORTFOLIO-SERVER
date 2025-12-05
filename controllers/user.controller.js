@@ -699,6 +699,25 @@ exports.getUserByUsernameMeta = async (req, res) => {
   }
 };
 
+// 🟢 Get user by custom domain
+exports.getUserByCustomDomainMeta = async (req, res) => {
+  const { customDomain } = req.params;
+  try {
+    const user = await User.findOne({ customDomainVerified: true, customDomain })
+      .select("fullname email phoneNumber urlimage about category socials skills displayLanguage");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      status: true,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // 🟢 Get all usernames for sitemap (including custom domains)
 exports.getActiveUsernames = async (req, res) => {
   try {
