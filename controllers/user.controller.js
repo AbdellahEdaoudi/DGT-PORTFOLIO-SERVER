@@ -725,7 +725,7 @@ exports.getUserByUsernameMeta = async (req, res) => {
   const { username } = req.params;
   try {
     const user = await User.findOne({ username })
-      .select("fullname email phoneNumber urlimage about category socials skills displayLanguage");
+      .select("fullname username email phoneNumber urlimage about category socials skills displayLanguage");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -744,7 +744,7 @@ exports.getUserByCustomDomainMeta = async (req, res) => {
   const { customDomain } = req.params;
   try {
     const user = await User.findOne({ customDomainVerified: true, customDomain })
-      .select("fullname email phoneNumber urlimage about category socials skills displayLanguage");
+      .select("fullname username email phoneNumber urlimage about category socials skills displayLanguage");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
