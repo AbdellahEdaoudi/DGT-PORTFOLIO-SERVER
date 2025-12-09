@@ -2,12 +2,8 @@ const User = require('../models/User');
 const Links = require('../models/Links');
 const cloudinary = require("../utils/cloudinary");
 const sanitizeHtml = require('sanitize-html');
-const fetch = require('node-fetch');
 const Subscription = require('../models/Subscription');
 const { sendEmail, welcomeTemplate } = require('../utils/emailService');
-const CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
-const SECRET = process.env.PAYPAL_SECRET;
-const BASE = process.env.BASE; // استخدم Live لاحقًا https://api-m.paypal.com
 
 const capitalizeWords = (str) => {
   return str
@@ -15,37 +11,11 @@ const capitalizeWords = (str) => {
     .replace(/\b\w/g, (char) => char.toUpperCase())
     .replace(/\s+/g, ' ');
 };
-// الحصول على توكن الوصول من PayPal
-async function getAccessToken() {
-  const res = await fetch(`${BASE}/v1/oauth2/token`, {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Basic ' + Buffer.from(CLIENT_ID + ':' + SECRET).toString('base64'),
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: 'grant_type=client_credentials'
-  });
-  const data = await res.json();
-  return data.access_token;
-}
-async function getPayPalSubscriptionStatus(subscriptionID) {
-  const accessToken = await getAccessToken();
 
-  const res = await fetch(`${BASE}/v1/billing/subscriptions/${subscriptionID}`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
-    }
-  });
-
-  const data = await res.json();
-  return data.status; // ACTIVE, SUSPENDED, CANCELLED, EXPIRED
-}
 // 🟢 Get all users
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find().collation({ locale: 'en', strength: 1 }).sort({ fullname: 1 });
+    const users = await User.find().select("-__v");
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
