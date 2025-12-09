@@ -9,6 +9,8 @@ app.delete('/user/:id', isAuthenticated, AdminController.deleteUserById);
 app.delete('/contacte/:id', isAuthenticated, AdminController.deleteContactById);
 app.delete('/link/:id', isAuthenticated, AdminController.deleteLinkById);
 app.delete('/promo/:id', isAuthenticated, AdminController.deletePromoById);
+app.get('/expired-trials', isAuthenticated, AdminController.getExpiredTrialUsers);
+app.post('/send-expired-emails', isAuthenticated, AdminController.sendTrialExpiredEmails);
 
 
 module.exports = app;

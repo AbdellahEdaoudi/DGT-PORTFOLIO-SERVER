@@ -4,6 +4,7 @@ const cloudinary = require("../utils/cloudinary");
 const sanitizeHtml = require('sanitize-html');
 const fetch = require('node-fetch');
 const Subscription = require('../models/Subscription');
+const { sendEmail, welcomeTemplate } = require('../utils/emailService');
 const CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const SECRET = process.env.PAYPAL_SECRET;
 const BASE = process.env.BASE; // استخدم Live لاحقًا https://api-m.paypal.com
@@ -88,6 +89,16 @@ exports.createUser = async (req, res) => {
       });
     }
     const newUser = await User.create(userData);
+
+    // Send Welcome Email
+    try {
+      const emailContent = welcomeTemplate(newUser.username || newUser.fullname);
+      await sendEmail(newUser.email, "Welcome to DGT Portfolio!", emailContent);
+    } catch (emailError) {
+      console.error("Error sending welcome email:", emailError);
+      // Continue without failing registration
+    }
+
     return res.status(201).json(newUser);
   } catch (error) {
     console.error("❌ Error creating user:", error.message);

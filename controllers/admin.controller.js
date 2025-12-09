@@ -5,6 +5,7 @@ const Contact = require("../models/Contacte");
 const Contacte = require("../models/Contacte");
 const Subscription = require("../models/Subscription");
 const Promocode = require("../models/Promocode");
+const { sendEmail, trialExpiredTemplate } = require("../utils/emailService");
 
 
 exports.GetDataApp = async (req, res) => {
@@ -57,8 +58,8 @@ exports.deleteUserById = async (req, res) => {
 
 exports.deleteContactById = async (req, res) => {
   const reqemail = req.user?.email;
-  if (reqemail !== process.env.EMAIL){
-    return  res.status(403).json({ message: 'Forbidden' });
+  if (reqemail !== process.env.EMAIL) {
+    return res.status(403).json({ message: 'Forbidden' });
   }
   try {
     const deletedContact = await Contacte.findByIdAndDelete(req.params.id);
@@ -74,8 +75,8 @@ exports.deleteContactById = async (req, res) => {
 // Delete a link by ID
 exports.deleteLinkById = async (req, res) => {
   const reqemail = req.user?.email;
-  if (reqemail !== process.env.EMAIL){
-    return  res.status(403).json({ message: 'Forbidden' });
+  if (reqemail !== process.env.EMAIL) {
+    return res.status(403).json({ message: 'Forbidden' });
   }
   try {
     const deletedLink = await Links.findByIdAndDelete(req.params.id);
@@ -102,5 +103,71 @@ exports.deletePromoById = async (req, res) => {
     res.json({ message: 'Promo code deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting promo code', error: error.message });
+  }
+};
+
+// Get Expired Trial Users (Created > 7 days ago and no active subscription)
+exports.getExpiredTrialUsers = async (req, res) => {
+  const reqemail = req.user?.email;
+  if (reqemail !== process.env.EMAIL) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  try {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    // Find users older than 7 days
+    const users = await User.find({ createdAt: { $lt: sevenDaysAgo } })
+      .select('fullname email username createdAt urlimage')
+      .lean();
+
+    // Filter those without active subscription
+    const expiredUsers = [];
+    const whitelist = [
+      "adam.carter.dev@gmail.com",
+      "soondiss8@gmail.com",
+      "dgt.portfolio.ma@gmail.com"
+    ];
+
+    for (const user of users) {
+      if (whitelist.includes(user.email)) continue;
+
+      const subscription = await Subscription.findOne({ userEmail: user.email });
+      if (!subscription || subscription.status !== 'ACTIVE') {
+        expiredUsers.push(user);
+      }
+    }
+
+    res.json(expiredUsers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Send Bulk Trial Expired Emails
+exports.sendTrialExpiredEmails = async (req, res) => {
+  const reqemail = req.user?.email;
+  if (reqemail !== process.env.EMAIL) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  const { users } = req.body; // Expect array of user objects { email, username/fullname }
+
+  if (!users || !Array.isArray(users)) {
+    return res.status(400).json({ message: "Invalid users list" });
+  }
+
+  try {
+    let count = 0;
+    for (const u of users) {
+      if (!u.email) continue;
+      const emailContent = trialExpiredTemplate(u.fullname || u.username);
+      await sendEmail(u.email, "Your Free Trial Has Ended - Special Gift Inside!", emailContent);
+      count++;
+    }
+    res.json({ message: `Emails sent to ${count} users successfully` });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
