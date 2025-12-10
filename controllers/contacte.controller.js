@@ -1,10 +1,11 @@
 const Contacte = require("../models/Contacte");
 const sanitizeHtml = require('sanitize-html');
+const cloudinary = require("../utils/cloudinary");
 
 exports.getContacts = async (req, res) => {
   const reqemail = req.user?.email;
-  if (reqemail !== process.env.EMAIL){
-    return  res.status(403).json({ message: 'Forbidden' });
+  if (reqemail !== process.env.EMAIL) {
+    return res.status(403).json({ message: 'Forbidden' });
   }
   try {
     const contacts = await Contacte.find();
@@ -16,8 +17,8 @@ exports.getContacts = async (req, res) => {
 
 exports.getContactById = async (req, res) => {
   const reqemail = req.user?.email;
-  if (reqemail !== process.env.EMAIL){
-    return  res.status(403).json({ message: 'Forbidden' });
+  if (reqemail !== process.env.EMAIL) {
+    return res.status(403).json({ message: 'Forbidden' });
   }
   try {
     const contact = await Contacte.findById(req.params.id);
@@ -36,14 +37,27 @@ exports.createContact = async (req, res) => {
     return res.status(403).json({ success: false, message: "Forbidden" });
   }
   for (const key in ContactData) {
+    if (key === 'attachment') continue;
     if (typeof ContactData[key] === 'string') {
       ContactData[key] = sanitizeHtml(ContactData[key]);
     }
   }
   if (ContactData.message && ContactData.message.length > 500) {
-  return res.status(400).json({ success: false, message: "Message too long" });
+    return res.status(400).json({ success: false, message: "Message too long" });
   }
   try {
+    if (ContactData.attachment) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(ContactData.attachment, {
+          folder: "support_attachments",
+          resource_type: "auto"
+        });
+        ContactData.attachment = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error("Cloudinary upload error:", uploadError);
+        return res.status(500).json({ message: "Failed to upload attachment", error: uploadError.message });
+      }
+    }
     const newContact = new Contacte(ContactData);
     const savedContact = await newContact.save();
     res.json(savedContact);

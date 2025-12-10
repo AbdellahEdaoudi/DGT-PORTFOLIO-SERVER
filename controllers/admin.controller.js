@@ -5,7 +5,9 @@ const Contact = require("../models/Contacte");
 const Contacte = require("../models/Contacte");
 const Subscription = require("../models/Subscription");
 const Promocode = require("../models/Promocode");
+
 const { sendEmail, trialExpiredTemplate } = require("../utils/emailService");
+const cloudinary = require("../utils/cloudinary");
 
 
 exports.GetDataApp = async (req, res) => {
@@ -62,10 +64,19 @@ exports.deleteContactById = async (req, res) => {
     return res.status(403).json({ message: 'Forbidden' });
   }
   try {
-    const deletedContact = await Contacte.findByIdAndDelete(req.params.id);
-    if (!deletedContact) {
+    const contact = await Contacte.findById(req.params.id);
+    if (!contact) {
       return res.status(404).json({ message: "Contact not found" });
     }
+
+    if (contact.attachment) {
+      const publicId = contact.attachment.split('/').pop().split('.')[0];
+      if (publicId) {
+        await cloudinary.uploader.destroy(`support_attachments/${publicId}`);
+      }
+    }
+
+    const deletedContact = await Contacte.findByIdAndDelete(req.params.id);
     res.json({ message: "Contact deleted successfully", deletedContact }); // Default status code is 200
   } catch (error) {
     res.status(500).json({ message: "An error occurred while deleting the contact", error });

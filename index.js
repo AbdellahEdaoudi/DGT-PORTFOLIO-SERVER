@@ -20,8 +20,8 @@ app.listen(PORT, () => {
 connectDB()
 app.use(cors(corsOption));
 app.use(cookiesParser())
-app.use(express.json({ limit: "4mb" }));
-app.use(express.urlencoded({ limit: "4mb", extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // General Route
 app.get("/alldata", isAuthenticated, generalController.getAllData);
