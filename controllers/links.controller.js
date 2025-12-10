@@ -4,7 +4,7 @@ const Links = require('../models/Links');
 
 // Get a single link by ID
 const getLinkByEmail = async (req, res) => {
-  const {email} = req.params;
+  const { email } = req.params;
   const reqemail = req.user?.email;
   if (email !== reqemail) {
     return res.status(403).json({ success: false, message: "Forbidden" });
@@ -20,41 +20,47 @@ const getLinkByEmail = async (req, res) => {
   }
 };
 
-  // Create a new link
-  const createLink = async (req, res) => {
-    const reqemail = req.user?.email;
-    if (req.body.useremail !== reqemail) {
-      return res.status(403).json({ success: false, message: "Forbidden" });
-    }
-    try {
-      req.body.namelink = req.body.namelink?.substring(0, 100);
-      req.body.link = req.body.link?.substring(0, 100);
-      const newLink = new Links(req.body);
-      await newLink.save();
-      res.status(201).json({ message: 'Link created successfully', data: newLink });
-    } catch (error) {
-      res.status(500).json({ message: 'Error creating link', error: error.message });
-    }
-  };
+// Create a new link
+const createLink = async (req, res) => {
+  const reqemail = req.user?.email;
+  if (req.body.useremail !== reqemail) {
+    return res.status(403).json({ success: false, message: "Forbidden" });
+  }
+  try {
+    req.body.namelink = req.body.namelink?.substring(0, 100);
+    req.body.link = req.body.link?.substring(0, 100);
 
-  // Update a link by ID
-  const updateLink = async (req, res) => {
-    const reqemail = req.user?.email;
-    if (req.body.useremail !== reqemail) {
-      return res.status(403).json({ success: false, message: "Forbidden" });
+    const count = await Links.countDocuments({ useremail: reqemail });
+    if (count >= 10) {
+      return res.status(400).json({ success: false, message: "Maximum 10 links allowed" });
     }
-    try {
-      req.body.namelink = req.body.namelink?.substring(0, 100);
-      req.body.link = req.body.link?.substring(0, 100);
-      const updatedLink = await Links.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      if (!updatedLink) {
-        return res.status(404).json({ message: 'Link not found' });
-      }
-      res.json({ message: 'Link updated successfully', data: updatedLink }); // Default status code is 200
-    } catch (error) {
-      res.status(500).json({ message: 'Error updating link', error: error.message });
+
+    const newLink = new Links(req.body);
+    await newLink.save();
+    res.status(201).json({ message: 'Link created successfully', data: newLink });
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating link', error: error.message });
+  }
+};
+
+// Update a link by ID
+const updateLink = async (req, res) => {
+  const reqemail = req.user?.email;
+  if (req.body.useremail !== reqemail) {
+    return res.status(403).json({ success: false, message: "Forbidden" });
+  }
+  try {
+    req.body.namelink = req.body.namelink?.substring(0, 100);
+    req.body.link = req.body.link?.substring(0, 100);
+    const updatedLink = await Links.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updatedLink) {
+      return res.status(404).json({ message: 'Link not found' });
     }
-  };
+    res.json({ message: 'Link updated successfully', data: updatedLink }); // Default status code is 200
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating link', error: error.message });
+  }
+};
 
 // Delete a link by ID
 const deleteLink = async (req, res) => {

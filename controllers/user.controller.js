@@ -275,6 +275,9 @@ exports.UpUserLanguages = async (req, res) => {
     if (!Array.isArray(languages)) {
       return res.status(400).json({ error: "'languages' must be an array" });
     }
+    if (languages.length > 10) {
+      return res.status(400).json({ error: "Maximum 10 languages allowed" });
+    }
     languages = languages.map(lang => {
       if (typeof lang === "string") {
         return lang.trim().substring(0, 50);
@@ -312,6 +315,9 @@ exports.UpUserServices = async (req, res) => {
 
     if (!Array.isArray(services)) {
       return res.status(400).json({ error: "'services' must be an array" });
+    }
+    if (services.length > 10) {
+      return res.status(400).json({ error: "Maximum 10 services allowed" });
     }
     services = services.map(serv => {
       if (typeof serv === "string") {
@@ -351,6 +357,9 @@ exports.UpUserSkills = async (req, res) => {
     if (!Array.isArray(skills)) {
       return res.status(400).json({ error: "'skills' must be an array" });
     }
+    if (skills.length > 10) {
+      return res.status(400).json({ error: "Maximum 10 skills allowed" });
+    }
     skills = skills.map(skil => {
       if (typeof skil === "string") {
         return skil.trim().substring(0, 130);
@@ -388,6 +397,9 @@ exports.UpUserEducation = async (req, res) => {
 
     if (!Array.isArray(education)) {
       return res.status(400).json({ error: "'education' must be an array" });
+    }
+    if (education.length > 10) {
+      return res.status(400).json({ error: "Maximum 10 education items allowed" });
     }
     education = education.filter(item =>
       Object.values(item || {}).some(v => v && v.toString().trim() !== "")
@@ -435,6 +447,9 @@ exports.UpUserExperience = async (req, res) => {
 
     if (!Array.isArray(experience)) {
       return res.status(400).json({ error: "'experience' must be an array" });
+    }
+    if (experience.length > 10) {
+      return res.status(400).json({ error: "Maximum 10 experience items allowed" });
     }
     experience = experience.filter(item =>
       Object.values(item || {}).some(v => v && v.toString().trim() !== "")
