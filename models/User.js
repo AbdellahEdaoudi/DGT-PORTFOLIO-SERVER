@@ -42,6 +42,12 @@ const userSchema = new mongoose.Schema({
       endDate: String,
     },
   ],
+  certificates: [
+    {
+      description: String,
+      cfimage: String,
+    },
+  ],
   socials: {
     github: String,
     linkedin: String,

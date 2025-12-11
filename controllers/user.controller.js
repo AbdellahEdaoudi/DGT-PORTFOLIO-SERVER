@@ -536,6 +536,167 @@ exports.UpUserProjects = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+exports.UpUserCertificates = async (req, res) => {
+  const { email } = req.user;
+
+  try {
+    let certificates = req.body.certificates;
+
+    // If sent via FormData, it might be stringified
+    if (typeof certificates === "string") {
+      try {
+        certificates = JSON.parse(certificates);
+      } catch {
+        return res.status(400).json({ error: "Invalid 'certificates' format" });
+      }
+    }
+
+    if (!Array.isArray(certificates)) {
+      return res.status(400).json({ error: "'certificates' must be an array" });
+    }
+    if (certificates.length > 5) {
+      return res.status(400).json({ error: "Maximum 5 certificates allowed" });
+    }
+
+    // Handle Uploaded Files
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        // Expecting fieldname format: "image_INDEX" e.g. "image_0"
+        if (file.fieldname.startsWith("image_")) {
+          const index = parseInt(file.fieldname.split("_")[1]);
+          if (!isNaN(index) && certificates[index]) {
+            // Check size again (optional, multer limits usually apply but good safety)
+            if (file.size > 2 * 1024 * 1024) {
+              const fs = require('fs');
+              try { fs.unlinkSync(file.path); } catch (e) { }
+              return res.status(400).json({ error: "One of the files exceeds 2MB limit" });
+            }
+
+            // Upload
+            const result = await cloudinary.uploader.upload(file.path, {
+              folder: "certificates",
+            });
+
+            // Update certificate object
+            certificates[index].cfimage = result.secure_url;
+
+            // Clean up
+            const fs = require('fs');
+            try { fs.unlinkSync(file.path); } catch (e) { }
+          }
+        }
+      }
+    }
+
+    // Sanitize and validate
+    certificates = certificates.map(item => {
+      if (typeof item === "object" && item !== null) {
+        return {
+          description: item.description ? item.description.trim().substring(0, 200) : "",
+          cfimage: item.cfimage ? item.cfimage.trim().substring(0, 1000) : "",
+        };
+      }
+      return null;
+    }).filter(item => item !== null);
+
+    const currentUser = await User.findOne({ email });
+    if (!currentUser) return res.status(404).json({ message: "User not found" });
+
+    // Handle Deletion logic
+    // Find cfimage URLs in the old list that are NOT in the new list
+    const oldImages = currentUser.certificates
+      .map(c => c.cfimage)
+      .filter(url => url);
+
+    const newImages = certificates
+      .map(c => c.cfimage)
+      .filter(url => url);
+
+    const imagesToDelete = oldImages.filter(url => !newImages.includes(url));
+
+    // Delete removed images from Cloudinary
+    for (const url of imagesToDelete) {
+      try {
+        // Extract public_id from URL
+        const parts = url.split('/');
+        const filename = parts.pop();
+        const publicId = filename.split('.')[0];
+
+        let idToDelete = publicId;
+        // Check if previous part is the folder name we expect
+        if (parts.length > 0 && parts[parts.length - 1] === 'certificates') {
+          idToDelete = `certificates/${publicId}`;
+        }
+
+        await cloudinary.uploader.destroy(idToDelete);
+      } catch (err) {
+        console.error(`Failed to delete image ${url}:`, err);
+      }
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { email },
+      { $set: { certificates } },
+      { new: true }
+    );
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating certificates:", error);
+    // Clean up any uploaded files if error occurs (optional but good)
+    if (req.files) {
+      const fs = require('fs');
+      req.files.forEach(f => { try { fs.unlinkSync(f.path); } catch (e) { } });
+    }
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.uploadCertificateImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+    if (req.file.size > 2 * 1024 * 1024) { // 2MB limit
+      const fs = require('fs');
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: "File size must not exceed 2MB" });
+    }
+
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "certificates",
+    });
+
+    // Clean up local file
+    // Note: If using memory storage, this isn't needed. But middleware says diskStorage.
+    // However, multer middleware code viewed earlier didn't seem to delete it automatically.
+    // It's good practice to delete logic in cloud uploader if using disk.
+    // Wait, the project usually relies on cloudinary utils or just uploads from path.
+    // The previous code in updateUserByEmail did: 
+    // const result = await cloudinary.uploader.upload(req.file.path);
+    // AND it didn't explicitly delete the file in that specific block? 
+    // Actually UpUserInfo deletes it if size > limit. But doesn't delete on success?
+    // Using fs.unlinkSync(req.file.path) is safer to avoid filling disk.
+    // Let's check UpUserInfo again. It DOESN'T delete on success.
+    // This is a potential issue in the codebase but I should probably follow suit or fix it.
+    // Better to delete it.
+
+    const fs = require('fs');
+    if (fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) { console.error("Could not delete temp file", e) }
+    }
+
+    res.json({
+      url: result.secure_url,
+      public_id: result.public_id,
+    });
+  } catch (error) {
+    console.error("Error uploading certificate:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
 exports.UpUserSocials = async (req, res) => {
   const { email } = req.user;
 

@@ -23,6 +23,8 @@ app.put("/update/skills", isAuthenticated, UserController.UpUserSkills);
 app.put("/update/education", isAuthenticated, UserController.UpUserEducation);
 app.put("/update/experience", isAuthenticated, UserController.UpUserExperience);
 app.put("/update/projects", isAuthenticated, UserController.UpUserProjects);
+app.put("/update/certificates", isAuthenticated, upload.any(), UserController.UpUserCertificates);
+app.post("/upload/certificate", isAuthenticated, upload.single("file"), UserController.uploadCertificateImage);
 app.put("/update/socials", isAuthenticated, UserController.UpUserSocials);
 app.put("/update/theme", isAuthenticated, UserController.UpUserTheme);
 app.put("/update/display-language", isAuthenticated, UserController.UpUserDisplayLanguage);
