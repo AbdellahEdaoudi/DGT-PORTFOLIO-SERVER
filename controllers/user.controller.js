@@ -780,6 +780,34 @@ exports.UpUserDisplayLanguage = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.UpUserSectionOrder = async (req, res) => {
+  const { email } = req.user;
+
+  try {
+    let { sectionOrder } = req.body;
+
+    if (!sectionOrder || !Array.isArray(sectionOrder)) {
+      return res.status(400).json({ error: "'sectionOrder' must be an array" });
+    }
+
+    // Validate that items are strings (and maybe specific allowed values if needed)
+    sectionOrder = sectionOrder.filter(item => typeof item === 'string');
+
+    const updatedUser = await User.findOneAndUpdate(
+      { email },
+      { $set: { sectionOrder } },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ message: "User not found" });
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating section order:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
 // 🟢 Get user by email
 exports.getUserByEmail = async (req, res) => {
   const { email } = req.params;

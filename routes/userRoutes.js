@@ -28,6 +28,7 @@ app.post("/upload/certificate", isAuthenticated, upload.single("file"), UserCont
 app.put("/update/socials", isAuthenticated, UserController.UpUserSocials);
 app.put("/update/theme", isAuthenticated, UserController.UpUserTheme);
 app.put("/update/display-language", isAuthenticated, UserController.UpUserDisplayLanguage);
+app.put("/update/section-order", isAuthenticated, UserController.UpUserSectionOrder);
 app.get('/active-usernames', UserController.getActiveUsernames);
 
 module.exports = app;

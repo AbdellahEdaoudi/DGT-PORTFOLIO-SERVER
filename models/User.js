@@ -62,6 +62,10 @@ const userSchema = new mongoose.Schema({
     reddit: String,
     twitch: String,
   },
+  sectionOrder: {
+    type: [String],
+    default: ["services", "experience", "skills", "projects", "education", "certificates", "languages"]
+  },
   theme: Number,
   displayLanguage: {
     type: String,
