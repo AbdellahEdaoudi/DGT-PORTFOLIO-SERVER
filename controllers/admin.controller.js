@@ -182,3 +182,30 @@ exports.sendTrialExpiredEmails = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Send Single Bulk Email
+exports.sendBulkEmails = async (req, res) => {
+  const reqemail = req.user?.email;
+  if (reqemail !== process.env.EMAIL) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  const { email, subject, content } = req.body; // Expecting single email string now
+
+  if (!email || typeof email !== 'string') {
+    return res.status(400).json({ message: "Invalid email address" });
+  }
+
+  if (!content) {
+    return res.status(400).json({ message: "Content is required" });
+  }
+
+  try {
+    // using the generic sendEmail function for a single recipient
+    await sendEmail(email, subject || "DGT Portfolio", content);
+    res.json({ message: `Email sent to ${email} successfully` });
+  } catch (error) {
+    console.error("Single email error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
