@@ -175,6 +175,7 @@ exports.sendTrialExpiredEmails = async (req, res) => {
       if (!u.email) continue;
       const emailContent = trialExpiredTemplate(u.fullname || u.username);
       await sendEmail(u.email, "Your Free Trial Has Ended - Special Gift Inside!", emailContent);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Delay to prevent rate limiting
       count++;
     }
     res.json({ message: `Emails sent to ${count} users successfully` });
@@ -184,16 +185,23 @@ exports.sendTrialExpiredEmails = async (req, res) => {
 };
 
 // Send Single Bulk Email
+// Send Bulk Emails (Handles both single and batch)
 exports.sendBulkEmails = async (req, res) => {
   const reqemail = req.user?.email;
   if (reqemail !== process.env.EMAIL) {
     return res.status(403).json({ message: 'Forbidden' });
   }
 
-  const { email, subject, content } = req.body; // Expecting single email string now
+  const { email, emails, subject, content } = req.body;
+  let recipients = [];
 
-  if (!email || typeof email !== 'string') {
-    return res.status(400).json({ message: "Invalid email address" });
+  // Determine recipients list
+  if (emails && Array.isArray(emails)) {
+    recipients = emails;
+  } else if (email && typeof email === 'string') {
+    recipients = [email];
+  } else {
+    return res.status(400).json({ message: "Invalid recipients" });
   }
 
   if (!content) {
@@ -201,11 +209,28 @@ exports.sendBulkEmails = async (req, res) => {
   }
 
   try {
-    // using the generic sendEmail function for a single recipient
-    await sendEmail(email, subject || "DGT Portfolio", content);
-    res.json({ message: `Email sent to ${email} successfully` });
+    let successCount = 0;
+    let failedCount = 0;
+
+    for (const recipient of recipients) {
+      try {
+        await sendEmail(recipient, subject || "DGT Portfolio", content);
+        successCount++;
+      } catch (err) {
+        console.error(`Failed to send to ${recipient}:`, err);
+        failedCount++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Processed ${recipients.length} emails. Sent: ${successCount}, Failed: ${failedCount}`,
+      sentCount: successCount,
+      failedCount: failedCount
+    });
+
   } catch (error) {
-    console.error("Single email error:", error);
+    console.error("Bulk email error:", error);
     res.status(500).json({ error: error.message });
   }
 };

@@ -1,26 +1,29 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: "dgt.portfolio.ma@gmail.com",
-        pass: "ppvk tunb tpir neht",
-    },
+  service: 'gmail',
+  pool: true, // Enable connection pooling
+  maxConnections: 5, // Limit concurrent connections
+  maxMessages: 100, // Limit messages per connection
+  auth: {
+    user: "dgt.portfolio.ma@gmail.com",
+    pass: "ppvk tunb tpir neht",
+  },
 });
 
 const sendEmail = async (to, subject, htmlContent) => {
-    try {
-        const mailOptions = {
-            from: "dgt.portfolio.ma@gmail.com",
-            to,
-            subject,
-            html: htmlContent,
-        };
-        await transporter.sendMail(mailOptions);
-        console.log(`Email sent to ${to}`);
-    } catch (error) {
-        console.error('Error sending email:', error);
-    }
+  try {
+    const mailOptions = {
+      from: "dgt.portfolio.ma@gmail.com",
+      to,
+      subject,
+      html: htmlContent,
+    };
+    await transporter.sendMail(mailOptions);
+    console.log(`Email sent to ${to}`);
+  } catch (error) {
+    console.error('Error sending email:', error);
+  }
 };
 
 const welcomeTemplate = (username) => `
@@ -126,7 +129,7 @@ const trialExpiredTemplate = (username) => `
 `;
 
 module.exports = {
-    sendEmail,
-    welcomeTemplate,
-    trialExpiredTemplate
+  sendEmail,
+  welcomeTemplate,
+  trialExpiredTemplate
 };
