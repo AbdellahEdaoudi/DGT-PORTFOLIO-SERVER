@@ -6,7 +6,6 @@ const { connectDB } = require('./config/dbConnect');
 const updateTheme = async () => {
     try {
         await connectDB();
-
         // Find by username 'adam-carter' and update theme to 12
         const user = await User.findOneAndUpdate(
             { username: 'adam-carter' },
