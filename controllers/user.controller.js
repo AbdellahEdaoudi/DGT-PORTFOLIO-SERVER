@@ -761,11 +761,6 @@ exports.UpUserDisplayLanguage = async (req, res) => {
       return res.status(400).json({ error: "'displayLanguage' must be a string" });
     }
 
-    const validLanguages = ["en", "fr", "ar", "de", "ru", "ja", "zh", "es", "nl"];
-    if (!validLanguages.includes(displayLanguage)) {
-      return res.status(400).json({ error: "Invalid language. Must be one of: en, fr, ar, de, ru, ja, zh, es, nl" });
-    }
-
     const updatedUser = await User.findOneAndUpdate(
       { email },
       { $set: { displayLanguage } },
