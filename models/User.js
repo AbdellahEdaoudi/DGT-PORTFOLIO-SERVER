@@ -73,7 +73,6 @@ const userSchema = new mongoose.Schema({
   },
   customDomain: {
     type: String,
-    default: null,
     unique: true,
     sparse: true, // Allows multiple null values
   },
