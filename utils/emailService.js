@@ -86,52 +86,56 @@ const welcomeTemplate = (username) => `
 `;
 
 const trialExpiredTemplate = (username) => `
-<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; overflow: hidden; border: 1px solid #e5e5e5; box-shadow: 0 8px 22px rgba(0,0,0,0.05);">
+<div style="direction: ltr; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; border: 1px solid #e5e5e5; font-size: 14px;">
 
-  <!-- Header -->
+  <!-- Header Compact -->
   <div style="text-align: center; padding: 10px 0; background: #fafafa; border-bottom: 1px solid #ededed;">
-    <img src="https://res.cloudinary.com/dynprvsfg/image/upload/v1765243945/DGTplogo_1_fpek3w.png" alt="DGT Portfolio" style="max-width: 140px; height: auto;" />
+    <img src="https://res.cloudinary.com/dynprvsfg/image/upload/v1765243945/DGTplogo_1_fpek3w.png" alt="DGT Portfolio" style="max-width: 100px; height: auto;" />
   </div>
 
-  <!-- Content -->
-  <div style="padding: 20px 40px; text-align: center;">
+  <!-- Content Compact -->
+  <div style="padding: 15px 20px; text-align: center;">
+
+    <h1 style="color: #0f0f0f; font-size: 20px; font-weight: 700; margin: 0 0 8px;">
+      Trial Expired
+    </h1>
     
-    <p style="color: #555; font-size: 17px; line-height: 1.8; margin: 0 0 25px;">
+    <div style="width: 40px; height: 2px; background-color: #000; margin: 0 auto 12px; border-radius: 2px;"></div>
+
+    <p style="color: #555; line-height: 1.5; margin: 0 0 12px;">
       Hi <strong>${username}</strong>,<br/>
       We hope you enjoyed your 7-day free trial. Your trial period has ended, but your journey doesn't have to stop here.
     </p>
 
-    <!-- Promo Box -->
-    <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; padding: 25px; border-radius: 10px; margin: 0 auto 35px; max-width: 450px;">
-        <p style="color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px; font-weight: 600;">Exclusive Gift For You</p>
-        <div style="font-family: monospace; font-size: 26px; color: #000; font-weight: 700; letter-spacing: 2px; margin-bottom: 8px;">
+    <!-- Promo Box Compact -->
+    <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 6px; margin: 0 auto 15px; max-width: 350px;">
+        <p style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 5px; font-weight: 600;">Exclusive Gift For You</p>
+        <div style="font-family: monospace; font-size: 20px; color: #000; font-weight: 700; letter-spacing: 2px; margin-bottom: 4px;">
             G7A2Q1DK
         </div>
-        <p style="color: #64748b; font-size: 14px; margin: 5px 0 0;">Use this promo code for a special discount!</p>
+        <p style="color: #64748b; font-size: 11px; margin: 0;">Use this promo code for a special discount!</p>
     </div>
 
-    <!-- Button -->
-    <a href="https://dgtportfolio.com/subscription" style="display: inline-block; background-color: #000; color: #fff; text-decoration: none; padding: 16px 48px; border-radius: 10px; font-weight: 600; font-size: 16px; letter-spacing: 0.6px; transition: background-color 0.3s;">
+    <!-- Direct Headline Link -->
+    <div style="margin-bottom: 15px; direction: ltr;">
+      <span style="font-size: 13px; font-weight: 600; color: #333;">Link: </span>
+      <a href="https://dgtportfolio.com/subscription" style="font-size: 13px; color: #2563eb; text-decoration: underline;">https://dgtportfolio.com/subscription</a>
+    </div>
+
+    <!-- Button Compact -->
+    <a href="https://dgtportfolio.com/subscription" style="display: inline-block; background-color: #000; color: #fff; text-decoration: none; padding: 10px 30px; border-radius: 6px; font-weight: 600; font-size: 14px;">
       Subscribe Now & Save
     </a>
 
-    <p style="color: #7d7d7d; font-size: 14px; margin-top: 40px;">
+    <p style="color: #7d7d7d; font-size: 12px; margin-top: 10px; margin-bottom: 0;">
       Unlock the full potential of your portfolio and keep impressing your audience.
     </p>
 
   </div>
 
-  <!-- Divider -->
-  <div style="width: 100%; height: 1px; background-color: #ededed;"></div>
-
-  <!-- Footer -->
-  <div style="background-color: #fafafa; padding: 25px; text-align: center; color: #8c8c8c;">
-    <p style="font-size: 13px; margin: 0 0 6px;">
-      &copy; ${new Date().getFullYear()} DGT Portfolio
-    </p>
-    <p style="font-size: 12px; margin: 0;">
-      All rights reserved.
-    </p>
+  <!-- Footer Minimal -->
+  <div style="background-color: #fafafa; padding: 8px; text-align: center; color: #8c8c8c; border-top: 1px solid #ededed; font-size: 11px;">
+    &copy; ${new Date().getFullYear()} DGT Portfolio. All rights reserved.
   </div>
 
 </div>
