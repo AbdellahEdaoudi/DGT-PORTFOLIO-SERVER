@@ -170,7 +170,14 @@ exports.removeCustomDomain = async (req, res) => {
 };
 
 exports.getCustomDomainSettings = async (req, res) => {
-    const { email } = req.params;
-    const user = await User.findOne({ email }).select('username customDomain customDomainVerified');
-    res.json({ status: true, data: user });
+    try {
+        const { email } = req.params;
+        const user = await User.findOne({ email }).select('username customDomain customDomainVerified');
+        if (!user) {
+            return res.json({ status: false, message: "User not found", data: null });
+        }
+        res.json({ status: true, data: user });
+    } catch (error) {
+        res.status(500).json({ status: false, message: error.message, data: null });
+    }
 };
