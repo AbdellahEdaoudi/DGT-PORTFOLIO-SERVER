@@ -27,50 +27,59 @@ const sendEmail = async (to, subject, htmlContent) => {
 };
 
 const welcomeTemplate = (username) => `
-<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background-color: #ffffff; border-radius: 14px; overflow: hidden; border: 1px solid #e5e5e5; box-shadow: 0 8px 22px rgba(0,0,0,0.05);">
+<div style="direction: ltr; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; border: 1px solid #e5e5e5; font-size: 14px;">
 
-  <!-- Header -->
-  <div style="text-align: center; padding: 15px 0; background: #fafafa; border-bottom: 1px solid #ededed;">
-    <img src="https://res.cloudinary.com/dynprvsfg/image/upload/v1765243945/DGTplogo_1_fpek3w.png" alt="DGT Portfolio" style="max-width: 140px; height: auto;" />
+  <!-- Header Compact -->
+  <div style="text-align: center; padding: 10px 0; background: #fafafa; border-bottom: 1px solid #ededed;">
+    <img src="https://res.cloudinary.com/dynprvsfg/image/upload/v1765243945/DGTplogo_1_fpek3w.png" alt="DGT Portfolio" style="max-width: 100px; height: auto;" />
   </div>
 
-  <!-- Content -->
-  <div style="padding: 25px 40px; text-align: center;">
-    
-    <h1 style="color: #0f0f0f; font-size: 28px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.5px;">
+  <!-- Content Compact -->
+  <div style="padding: 15px 20px; text-align: center;">
+
+    <h1 style="color: #0f0f0f; font-size: 20px; font-weight: 700; margin: 0 0 8px;">
       Welcome to DGT Portfolio
     </h1>
 
-    <div style="width: 90px; height: 3px; background-color: #000; margin: 14px auto 30px; border-radius: 2px;"></div>
+    <div style="width: 40px; height: 2px; background-color: #000; margin: 0 auto 12px; border-radius: 2px;"></div>
 
-    <p style="color: #555; font-size: 17px; line-height: 1.8; margin: 0 0 35px;">
+    <p style="color: #555; line-height: 1.5; margin: 0 0 12px;">
       Hi <strong>${username}</strong>,<br/>
       We're thrilled to have you onboard! Your account is now active, and your 
       <strong>7-day free trial</strong> has officially started.
     </p>
 
-    <!-- Button -->
-    <a href="https://dgtportfolio.com" style="display: inline-block; background-color: #000; color: #fff; text-decoration: none; padding: 16px 48px; border-radius: 10px; font-weight: 600; font-size: 16px; letter-spacing: 0.6px; transition: background-color 0.3s;">
+    <!-- Features List Compact -->
+    <div style="text-align: left; direction: ltr; display: inline-block; width: 100%; max-width: 420px; font-size: 13px; margin-bottom: 15px; background: #fdfdfd; padding: 10px; border: 1px solid #eee; border-radius: 6px;">
+      <strong style="display: block; margin-bottom: 5px; color: #000;">Instant Features:</strong>
+      <ul style="margin: 0; padding-left: 20px; text-align: left; line-height: 1.4;">
+        <li style="margin-bottom: 4px;">🔗 <strong>Custom Subdomain:</strong> A link with your name like <em>name.dgtportfolio.com</em> or connect your own custom domain.</li>
+        <li style="margin-bottom: 4px;">📱 <strong>QR Code Profile:</strong> A QR code for instant sharing of your digital portfolio.</li>
+        <li style="margin-bottom: 4px;">🔍 <strong>SEO Optimized:</strong> Your portfolio is optimized to appear on search engines like Google.</li>
+        <li style="margin-bottom: 0;">🎨 <strong>Themes:</strong> Customize the look and feel of your digital portfolio.</li>
+      </ul>
+    </div>
+
+    <!-- Direct Headline Link -->
+    <div style="margin-bottom: 15px; direction: ltr;">
+      <span style="font-size: 13px; font-weight: 600; color: #333;">Link: </span>
+      <a href="https://dgtportfolio.com/update-profile" style="font-size: 13px; color: #2563eb; text-decoration: underline;">https://dgtportfolio.com/update-profile</a>
+    </div>
+
+    <!-- Button Compact -->
+    <a href="https://dgtportfolio.com" style="display: inline-block; background-color: #000; color: #fff; text-decoration: none; padding: 10px 30px; border-radius: 6px; font-weight: 600; font-size: 14px;">
       Go to Dashboard
     </a>
 
-    <p style="color: #7d7d7d; font-size: 14px; margin-top: 40px;">
+    <p style="color: #7d7d7d; font-size: 12px; margin-top: 10px; margin-bottom: 0;">
       Start creating and sharing your personal portfolio today.
     </p>
 
   </div>
 
-  <!-- Divider -->
-  <div style="width: 100%; height: 1px; background-color: #ededed;"></div>
-
-  <!-- Footer -->
-  <div style="background-color: #fafafa; padding: 25px; text-align: center; color: #8c8c8c;">
-    <p style="font-size: 13px; margin: 0 0 6px;">
-      &copy; ${new Date().getFullYear()} DGT Portfolio
-    </p>
-    <p style="font-size: 12px; margin: 0;">
-      All rights reserved.
-    </p>
+  <!-- Footer Minimal -->
+  <div style="background-color: #fafafa; padding: 8px; text-align: center; color: #8c8c8c; border-top: 1px solid #ededed; font-size: 11px;">
+    &copy; ${new Date().getFullYear()} DGT Portfolio. All rights reserved.
   </div>
 
 </div>
