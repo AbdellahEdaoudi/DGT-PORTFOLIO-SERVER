@@ -45,6 +45,9 @@ exports.createContact = async (req, res) => {
   if (ContactData.message && ContactData.message.length > 500) {
     return res.status(400).json({ success: false, message: "Message too long" });
   }
+  if (ContactData.subject && ContactData.subject.length > 100) {
+    return res.status(400).json({ success: false, message: "Subject too long" });
+  }
   try {
     if (ContactData.attachment) {
       try {
