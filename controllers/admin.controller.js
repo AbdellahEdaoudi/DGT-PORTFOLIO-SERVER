@@ -18,7 +18,7 @@ exports.GetDataApp = async (req, res) => {
     }
     const [users, links, contacts, subscription, promoCodes] = await Promise.all([
       User.find().collation({ locale: "en", strength: 1 }).sort({ fullname: 1 })
-        .select(" fullname email username country category createdAt urlimage theme").lean(),
+        .select("about fullname email username country category createdAt urlimage theme").lean(),
       Links.find().select("-__v").lean(),
       Contact.find().select("-__v").lean(),
       Subscription.find().select("-__v").lean(),
