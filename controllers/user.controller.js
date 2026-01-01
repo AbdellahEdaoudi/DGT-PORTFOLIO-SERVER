@@ -831,7 +831,8 @@ exports.getUserByUsername = async (req, res) => {
     "adam.carter.dev@gmail.com",
     "abdellahedaoudi80@gmail.com",
     "soondiss8@gmail.com",
-    "dgt.portfolio.ma@gmail.com"
+    "dgt.portfolio.ma@gmail.com",
+    "edaoudicontact@gmail.com"
   ];
   const createdAt = new Date(user.createdAt);
   const sevenDaysLater = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -871,7 +872,8 @@ exports.getUserByCustomDomain = async (req, res) => {
     "adam.carter.dev@gmail.com",
     "abdellahedaoudi80@gmail.com",
     "soondiss8@gmail.com",
-    "dgt.portfolio.ma@gmail.com"
+    "dgt.portfolio.ma@gmail.com",
+    "edaoudicontact@gmail.com"
   ];
   const createdAt = new Date(user.createdAt);
   const sevenDaysLater = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
