@@ -117,45 +117,6 @@ exports.deletePromoById = async (req, res) => {
   }
 };
 
-// Get Expired Trial Users (Created > 7 days ago and no active subscription)
-exports.getExpiredTrialUsers = async (req, res) => {
-  const reqemail = req.user?.email;
-  if (reqemail !== process.env.EMAIL) {
-    return res.status(403).json({ message: 'Forbidden' });
-  }
-
-  try {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    // Find users older than 7 days
-    const users = await User.find({ createdAt: { $lt: sevenDaysAgo } })
-      .select('fullname email username createdAt urlimage')
-      .lean();
-
-    // Filter those without active subscription
-    const expiredUsers = [];
-    const whitelist = [
-      "adam.carter.dev@gmail.com",
-      "soondiss8@gmail.com",
-      "dgt.portfolio.ma@gmail.com"
-    ];
-
-    for (const user of users) {
-      if (whitelist.includes(user.email)) continue;
-
-      const subscription = await Subscription.findOne({ userEmail: user.email });
-      if (!subscription || subscription.status !== 'ACTIVE') {
-        expiredUsers.push(user);
-      }
-    }
-
-    res.json(expiredUsers);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
 // Send Bulk Trial Expired Emails
 exports.sendTrialExpiredEmails = async (req, res) => {
   const reqemail = req.user?.email;
