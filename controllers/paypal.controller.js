@@ -65,7 +65,7 @@ exports.createProductAndPlans = async (req, res) => {
     // 3 PLANS
     // -------------------------------------------------------------
 
-    // ------------------ MONTHLY PLAN ($1 trial → $10/month) ------------------
+    // ------------------ MONTHLY PLAN ($1/month) ------------------
     await createPlan(
       {
         product_id: productId,
@@ -73,20 +73,11 @@ exports.createProductAndPlans = async (req, res) => {
         billing_cycles: [
           {
             frequency: { interval_unit: "MONTH", interval_count: 1 },
-            tenure_type: "TRIAL",
-            sequence: 1,
-            total_cycles: 1,
-            pricing_scheme: {
-              fixed_price: { value: "1", currency_code: "USD" },
-            },
-          },
-          {
-            frequency: { interval_unit: "MONTH", interval_count: 1 },
             tenure_type: "REGULAR",
-            sequence: 2,
+            sequence: 1,
             total_cycles: 0,
             pricing_scheme: {
-              fixed_price: { value: "10", currency_code: "USD" },
+              fixed_price: { value: "1", currency_code: "USD" },
             },
           },
         ],
@@ -99,19 +90,19 @@ exports.createProductAndPlans = async (req, res) => {
       "Monthly Plan"
     );
 
-    // ------------------ 4-MONTH PLAN ($30 per 4 months) ------------------
+    // ------------------ 6-MONTH PLAN ($5 per 6 months) ------------------
     await createPlan(
       {
         product_id: productId,
-        name: "4-Month Plan",
+        name: "6-Month Plan",
         billing_cycles: [
           {
-            frequency: { interval_unit: "MONTH", interval_count: 4 },
+            frequency: { interval_unit: "MONTH", interval_count: 6 },
             tenure_type: "REGULAR",
             sequence: 1,
             total_cycles: 0,
             pricing_scheme: {
-              fixed_price: { value: "30", currency_code: "USD" },
+              fixed_price: { value: "5", currency_code: "USD" },
             },
           },
         ],
@@ -121,10 +112,10 @@ exports.createProductAndPlans = async (req, res) => {
           payment_failure_threshold: 3,
         },
       },
-      "4-Month Plan"
+      "6-Month Plan"
     );
 
-    // ------------------ ANNUAL PLAN ($60 yearly) ------------------
+    // ------------------ ANNUAL PLAN ($9/year) ------------------
     await createPlan(
       {
         product_id: productId,
@@ -136,7 +127,7 @@ exports.createProductAndPlans = async (req, res) => {
             sequence: 1,
             total_cycles: 0,
             pricing_scheme: {
-              fixed_price: { value: "60", currency_code: "USD" },
+              fixed_price: { value: "9", currency_code: "USD" },
             },
           },
         ],
@@ -219,7 +210,7 @@ exports.createPromoProductAndPlans = async (req, res) => {
       "Promo Monthly Plan"
     );
 
-    // ------------------ 6-MONTH PLAN ($5 per 6 months) ------------------
+    // ------------------ 6-MONTH PLAN ($3 per 6 months) ------------------
     await createPlan(
       {
         product_id: productId,
@@ -231,7 +222,7 @@ exports.createPromoProductAndPlans = async (req, res) => {
             sequence: 1,
             total_cycles: 0,
             pricing_scheme: {
-              fixed_price: { value: "5", currency_code: "USD" },
+              fixed_price: { value: "3", currency_code: "USD" },
             },
           },
         ],
@@ -244,7 +235,7 @@ exports.createPromoProductAndPlans = async (req, res) => {
       "Promo 6-Month Plan"
     );
 
-    // ------------------ ANNUAL PLAN ($9/year) ------------------
+    // ------------------ ANNUAL PLAN ($5/year) ------------------
     await createPlan(
       {
         product_id: productId,
@@ -256,7 +247,7 @@ exports.createPromoProductAndPlans = async (req, res) => {
             sequence: 1,
             total_cycles: 0,
             pricing_scheme: {
-              fixed_price: { value: "9", currency_code: "USD" },
+              fixed_price: { value: "5", currency_code: "USD" },
             },
           },
         ],
@@ -275,3 +266,4 @@ exports.createPromoProductAndPlans = async (req, res) => {
     return res.status(500).json({ message: "Failed to create PayPal promo plans" });
   }
 };
+
