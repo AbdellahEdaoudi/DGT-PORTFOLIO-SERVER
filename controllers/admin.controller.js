@@ -195,3 +195,98 @@ exports.sendBulkEmails = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Get Cloudinary Images (and Folders)
+exports.getCloudinaryImages = async (req, res) => {
+  const reqemail = req.user?.email;
+  if (reqemail !== process.env.EMAIL) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  try {
+    const { next_cursor, folder } = req.query;
+
+    let folders = [];
+    let resources = [];
+    let next_cursor_res = null;
+
+    // Fetch Folders (only on first page load of a directory view)
+    if (!next_cursor || next_cursor === 'undefined' || next_cursor === 'null') {
+      try {
+        if (folder) {
+          // Get subfolders of a specific folder
+          const foldersRes = await cloudinary.api.sub_folders(folder);
+          folders = foldersRes.folders;
+        } else {
+          // Get root folders
+          const rootFolders = await cloudinary.api.root_folders();
+          folders = rootFolders.folders;
+        }
+      } catch (err) {
+        console.error("Folder fetch error:", err.message);
+        // Non-critical, continue to fetch resources
+      }
+    }
+
+    // Fetch Resources
+    const options = {
+      type: 'upload',
+      max_results: 50,
+      prefix: folder ? folder + "/" : undefined // Filter by folder
+    };
+
+    if (next_cursor && next_cursor !== 'null' && next_cursor !== 'undefined') {
+      options.next_cursor = next_cursor;
+    }
+
+    // console.log("Fetching cloudinary images with options:", options);
+
+    const result = await cloudinary.api.resources(options);
+    resources = result.resources;
+    next_cursor_res = result.next_cursor;
+
+    res.json({
+      folders,
+      resources,
+      next_cursor: next_cursor_res
+    });
+
+  } catch (error) {
+    console.error("Cloudinary API Error:", error);
+    res.status(500).json({
+      message: "Error fetching Cloudinary images",
+      error: error.message || error
+    });
+  }
+};
+
+// Delete Cloudinary Image
+exports.deleteCloudinaryImage = async (req, res) => {
+  const reqemail = req.user?.email;
+  if (reqemail !== process.env.EMAIL) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  try {
+    const { public_id } = req.body;
+
+    if (!public_id) {
+      return res.status(400).json({ message: "Public ID is required" });
+    }
+
+    const result = await cloudinary.uploader.destroy(public_id);
+
+    if (result.result === 'ok') {
+      res.json({ message: "Image deleted successfully", public_id });
+    } else {
+      res.status(400).json({ message: "Failed to delete image", result });
+    }
+
+  } catch (error) {
+    console.error("Cloudinary Delete Error:", error);
+    res.status(500).json({
+      message: "Error deleting Cloudinary image",
+      error: error.message || error
+    });
+  }
+};

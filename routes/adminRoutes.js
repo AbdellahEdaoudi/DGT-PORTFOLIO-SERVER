@@ -11,6 +11,8 @@ app.delete('/link/:id', isAuthenticated, AdminController.deleteLinkById);
 app.delete('/promo/:id', isAuthenticated, AdminController.deletePromoById);
 app.post('/send-expired-emails', isAuthenticated, AdminController.sendTrialExpiredEmails);
 app.post('/send-bulk-emails', isAuthenticated, AdminController.sendBulkEmails);
+app.get('/cloudinary-images', isAuthenticated, AdminController.getCloudinaryImages);
+app.delete('/cloudinary-images', isAuthenticated, AdminController.deleteCloudinaryImage);
 
 
 module.exports = app;
