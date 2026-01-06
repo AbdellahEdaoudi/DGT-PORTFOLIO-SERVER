@@ -1,8 +1,8 @@
 const express = require('express');
-const app = express.Router();
+const router = express.Router();
 const paypalController = require('../controllers/paypal.controller');
 
-app.get('/create-product-and-plans', paypalController.createProductAndPlans);
-app.get('/create-promo-product-and-plans', paypalController.createPromoProductAndPlans);
+router.get('/create-product-and-plans', paypalController.createProductAndPlans);
+router.get('/create-promo-product-and-plans', paypalController.createPromoProductAndPlans);
 
-module.exports = app;
+module.exports = router;

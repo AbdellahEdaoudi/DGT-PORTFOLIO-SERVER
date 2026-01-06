@@ -1,34 +1,29 @@
 const express = require("express");
-const app = express();
+const router = express.Router();
 const UserController = require("../controllers/user.controller");
 const isAuthenticated = require('../middlewares/isAuthenticated');
 const upload = require('../middlewares/multer');
 
 // User Routes
-app.get('/', isAuthenticated, UserController.getUsers);
-app.get('/email/:email', isAuthenticated, UserController.getUserByEmail);
-app.get('/username/:username', UserController.getUserByUsername);
-app.get('/customdomain/:customDomain', UserController.getUserByCustomDomain);
-app.get('/metauser/:username', UserController.getUserByUsernameMeta);
-app.get('/metacustomdomain/:customDomain', UserController.getUserByCustomDomainMeta);
-app.post('/', isAuthenticated, UserController.createUser);
+router.get('/', isAuthenticated, UserController.getUsers);
+router.get('/email/:email', isAuthenticated, UserController.getUserByEmail);
+router.get('/username/:username', UserController.getUserByUsername);
+router.get('/customdomain/:customDomain', UserController.getUserByCustomDomain);
+router.get('/metauser/:username', UserController.getUserByUsernameMeta);
+router.get('/metacustomdomain/:customDomain', UserController.getUserByCustomDomainMeta);
+router.post('/', isAuthenticated, UserController.createUser);
 // Update User Data
-app.put('/:email', isAuthenticated, upload.single('urlimage'), UserController.updateUserByEmail);
-app.put("/update/user-info", isAuthenticated, upload.single("urlimage"), UserController.UpUserInfo);
-app.put("/update/about", isAuthenticated, UserController.UpUserAbout);
-app.put("/update/bgcolor", isAuthenticated, UserController.UpUserBgColor);
-app.put("/update/languages", isAuthenticated, UserController.UpUserLanguages);
-app.put("/update/services", isAuthenticated, UserController.UpUserServices);
-app.put("/update/skills", isAuthenticated, UserController.UpUserSkills);
-app.put("/update/education", isAuthenticated, UserController.UpUserEducation);
-app.put("/update/experience", isAuthenticated, UserController.UpUserExperience);
-app.put("/update/projects", isAuthenticated, UserController.UpUserProjects);
-app.put("/update/certificates", isAuthenticated, upload.any(), UserController.UpUserCertificates);
-app.post("/upload/certificate", isAuthenticated, upload.single("file"), UserController.uploadCertificateImage);
-app.put("/update/socials", isAuthenticated, UserController.UpUserSocials);
-app.put("/update/theme", isAuthenticated, UserController.UpUserTheme);
-app.put("/update/display-language", isAuthenticated, UserController.UpUserDisplayLanguage);
-app.put("/update/section-order", isAuthenticated, UserController.UpUserSectionOrder);
-app.get('/active-usernames', UserController.getActiveUsernames);
+router.put('/:email', isAuthenticated, upload.single('urlimage'), UserController.updateUserByEmail);
+router.put("/update/user-info", isAuthenticated, upload.single("urlimage"), UserController.UpUserInfo);
+router.put("/update/about", isAuthenticated, UserController.UpUserAbout);
+router.put("/update/bgcolor", isAuthenticated, UserController.UpUserBgColor);
+router.put("/update/languages", isAuthenticated, UserController.UpUserLanguages);
+router.put("/update/services", isAuthenticated, UserController.UpUserServices);
+router.put("/update/skills", isAuthenticated, UserController.UpUserSkills);
+router.put("/update/socials", isAuthenticated, UserController.UpUserSocials);
+router.put("/update/theme", isAuthenticated, UserController.UpUserTheme);
+router.put("/update/display-language", isAuthenticated, UserController.UpUserDisplayLanguage);
+router.put("/update/section-order", isAuthenticated, UserController.UpUserSectionOrder);
+router.get('/active-usernames', UserController.getActiveUsernames);
 
-module.exports = app;
+module.exports = router;

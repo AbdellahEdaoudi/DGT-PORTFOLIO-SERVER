@@ -1,14 +1,14 @@
 const express = require("express");
-const app = express();
+const router = express.Router();
 const ContacteController = require("../controllers/contacte.controller");
 const isAuthenticated = require('../middlewares/isAuthenticated');
 const { contactLimiter } = require('../Limiting/contactLimiter');
 
 // Contacts Request Routes
-app.get('/',isAuthenticated, ContacteController.getContacts);
-app.get('/:id', isAuthenticated, ContacteController.getContactById);
-app.post('/', isAuthenticated,contactLimiter,ContacteController.createContact);
-app.put('/:id', isAuthenticated, ContacteController.updateContactById);
+router.get('/', isAuthenticated, ContacteController.getContacts);
+router.get('/:id', isAuthenticated, ContacteController.getContactById);
+router.post('/', isAuthenticated, contactLimiter, ContacteController.createContact);
+router.put('/:id', isAuthenticated, ContacteController.updateContactById);
 
 
-module.exports = app;
+module.exports = router;

@@ -26,6 +26,10 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 // General Route
 app.get("/alldata", isAuthenticated, generalController.getAllData);
 app.use('/users', require('./routes/userRoutes'));
+app.use('/users', require('./routes/user/projects.routes'));
+app.use('/users', require('./routes/user/experience.routes'));
+app.use('/users', require('./routes/user/education.routes'));
+app.use('/users', require('./routes/user/certificates.routes'));
 app.use('/links', require('./routes/linksRoutes'));
 app.use('/contacts', require('./routes/contactsRoutes'));
 app.use('/admin', require('./routes/adminRoutes'));

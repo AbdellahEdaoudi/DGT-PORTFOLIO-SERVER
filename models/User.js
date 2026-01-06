@@ -44,6 +44,7 @@ const userSchema = new mongoose.Schema({
   ],
   certificates: [
     {
+      title: String,
       description: String,
       cfimage: String,
     },
