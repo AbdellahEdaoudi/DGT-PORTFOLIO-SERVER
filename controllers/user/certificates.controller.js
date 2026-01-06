@@ -59,14 +59,17 @@ exports.saveUserCertificateItem = async (req, res) => {
             res.json(updatedUser);
 
         } else {
-            // Add new
-            const updatedUser = await User.findOneAndUpdate(
-                { email },
-                { $push: { certificates: certObj } },
-                { new: true }
-            );
-            if (!updatedUser) return res.status(404).json({ message: "User not found" });
-            res.json(updatedUser);
+            // Add new - Check limit first (10 items)
+            const user = await User.findOne({ email });
+            if (!user) return res.status(404).json({ message: "User not found" });
+
+            if (user.certificates && user.certificates.length >= 10) {
+                return res.status(400).json({ error: "Maximum limit of 10 certificates reached" });
+            }
+
+            user.certificates.push(certObj);
+            await user.save();
+            res.json(user);
         }
 
     } catch (error) {

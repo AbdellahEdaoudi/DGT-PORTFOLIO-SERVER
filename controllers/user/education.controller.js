@@ -26,14 +26,17 @@ exports.saveUserEducationItem = async (req, res) => {
             res.json(updatedUser);
 
         } else {
-            // Add new
-            const updatedUser = await User.findOneAndUpdate(
-                { email },
-                { $push: { education: educationObj } },
-                { new: true }
-            );
-            if (!updatedUser) return res.status(404).json({ message: "User not found" });
-            res.json(updatedUser);
+            // Add new - Check limit (10 items)
+            const user = await User.findOne({ email });
+            if (!user) return res.status(404).json({ message: "User not found" });
+
+            if (user.education && user.education.length >= 10) {
+                return res.status(400).json({ error: "Maximum limit of 10 education items reached" });
+            }
+
+            user.education.push(educationObj);
+            await user.save();
+            res.json(user);
         }
 
     } catch (error) {

@@ -26,14 +26,17 @@ exports.saveUserExperienceItem = async (req, res) => {
             res.json(updatedUser);
 
         } else {
-            // Add new experience
-            const updatedUser = await User.findOneAndUpdate(
-                { email },
-                { $push: { experience: experienceObj } },
-                { new: true }
-            );
-            if (!updatedUser) return res.status(404).json({ message: "User not found" });
-            res.json(updatedUser);
+            // Add new - Check limit (10 items)
+            const user = await User.findOne({ email });
+            if (!user) return res.status(404).json({ message: "User not found" });
+
+            if (user.experience && user.experience.length >= 10) {
+                return res.status(400).json({ error: "Maximum limit of 10 experience items reached" });
+            }
+
+            user.experience.push(experienceObj);
+            await user.save();
+            res.json(user);
         }
 
     } catch (error) {
