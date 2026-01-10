@@ -162,7 +162,7 @@ exports.removeCustomDomain = async (req, res) => {
             await removeFromVercel(user.customDomain);
         }
 
-        await User.findOneAndUpdate({ email }, { customDomain: null, customDomainVerified: false });
+        await User.findOneAndUpdate({ email }, { $unset: { customDomain: 1 }, $set: { customDomainVerified: false } });
         res.json({ status: true, message: "Removed" });
     } catch (error) {
         res.status(500).json({ status: false, message: error.message });
