@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema({
   socials: {
     github: String,
     linkedin: String,
-    fb: String,
+    facebook: String,
     instagram: String,
     twitter: String,
     youtube: String,
