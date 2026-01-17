@@ -29,55 +29,47 @@ const sendEmail = async (to, subject, htmlContent) => {
 const welcomeTemplate = (username) => `
 <div style="direction: ltr; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; border: 1px solid #e5e5e5; font-size: 14px;">
 
-  <!-- Header Compact -->
   <div style="text-align: center; padding: 10px 0; background: #fafafa; border-bottom: 1px solid #ededed;">
     <img src="https://res.cloudinary.com/dynprvsfg/image/upload/v1765243945/DGTplogo_1_fpek3w.png" alt="DGT Portfolio" style="max-width: 100px; height: auto;" />
   </div>
 
-  <!-- Content Compact -->
   <div style="padding: 15px 20px; text-align: center;">
 
     <h1 style="color: #0f0f0f; font-size: 20px; font-weight: 700; margin: 0 0 8px;">
-      Welcome to DGT Portfolio
+      Quick! Your 24-Hour Access is Active 🚀
     </h1>
 
     <div style="width: 40px; height: 2px; background-color: #000; margin: 0 auto 12px; border-radius: 2px;"></div>
 
     <p style="color: #555; line-height: 1.5; margin: 0 0 12px;">
       Hi <strong>${username}</strong>,<br/>
-      We're thrilled to have you onboard! Your account is now active, and your 
-      <strong>7-day free trial</strong> has officially started.
+      Your account is ready! You have <strong>24 hours</strong> of full premium access to build, customize, and launch your professional portfolio.
     </p>
 
-    <!-- Features List Compact -->
-    <div style="text-align: left; direction: ltr; display: inline-block; width: 100%; max-width: 420px; font-size: 13px; margin-bottom: 15px; background: #fdfdfd; padding: 10px; border: 1px solid #eee; border-radius: 6px;">
-      <strong style="display: block; margin-bottom: 5px; color: #000;">Instant Features:</strong>
-      <ul style="margin: 0; padding-left: 20px; text-align: left; line-height: 1.4;">
-        <li style="margin-bottom: 4px;">🔗 <strong>Custom Subdomain:</strong> A link with your name like <em>name.dgtportfolio.com</em> or connect your own custom domain.</li>
-        <li style="margin-bottom: 4px;">📱 <strong>QR Code Profile:</strong> A QR code for instant sharing of your digital portfolio.</li>
-        <li style="margin-bottom: 4px;">🔍 <strong>SEO Optimized:</strong> Your portfolio is optimized to appear on search engines like Google.</li>
-        <li style="margin-bottom: 0;">🎨 <strong>Themes:</strong> Customize the look and feel of your digital portfolio.</li>
+    <div style="text-align: left; direction: ltr; display: inline-block; width: 100%; max-width: 420px; font-size: 13px; margin-bottom: 15px; background: #fff9f0; padding: 10px; border: 1px solid #ffeeba; border-radius: 6px;">
+      <strong style="display: block; margin-bottom: 5px; color: #856404;">Don't wait! Today you can:</strong>
+      <ul style="margin: 0; padding-left: 20px; text-align: left; line-height: 1.4; color: #856404;">
+        <li style="margin-bottom: 4px;">✨ <strong>Choose any Premium Theme</strong></li>
+        <li style="margin-bottom: 4px;">🔗 <strong>Claim your custom subdomain</strong></li>
+        <li style="margin-bottom: 4px;">📱 <strong>Generate your unique QR Code</strong></li>
       </ul>
     </div>
 
-    <!-- Direct Headline Link -->
     <div style="margin-bottom: 15px; direction: ltr;">
-      <span style="font-size: 13px; font-weight: 600; color: #333;">Link: </span>
+      <span style="font-size: 13px; font-weight: 600; color: #333;">Start now: </span>
       <a href="https://dgtportfolio.com/update-profile" style="font-size: 13px; color: #2563eb; text-decoration: underline;">https://dgtportfolio.com/update-profile</a>
     </div>
 
-    <!-- Button Compact -->
     <a href="https://dgtportfolio.com" style="display: inline-block; background-color: #000; color: #fff; text-decoration: none; padding: 10px 30px; border-radius: 6px; font-weight: 600; font-size: 14px;">
-      Go to Dashboard
+      Build My Portfolio Now
     </a>
 
-    <p style="color: #7d7d7d; font-size: 12px; margin-top: 10px; margin-bottom: 0;">
-      Start creating and sharing your personal portfolio today.
+    <p style="color: #7d7d7d; font-size: 11px; margin-top: 15px;">
+      Time is ticking. Start impressing your clients today!
     </p>
 
   </div>
 
-  <!-- Footer Minimal -->
   <div style="background-color: #fafafa; padding: 8px; text-align: center; color: #8c8c8c; border-top: 1px solid #ededed; font-size: 11px;">
     &copy; ${new Date().getFullYear()} DGT Portfolio. All rights reserved.
   </div>
@@ -88,52 +80,44 @@ const welcomeTemplate = (username) => `
 const trialExpiredTemplate = (username) => `
 <div style="direction: ltr; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; border: 1px solid #e5e5e5; font-size: 14px;">
 
-  <!-- Header Compact -->
   <div style="text-align: center; padding: 10px 0; background: #fafafa; border-bottom: 1px solid #ededed;">
     <img src="https://res.cloudinary.com/dynprvsfg/image/upload/v1765243945/DGTplogo_1_fpek3w.png" alt="DGT Portfolio" style="max-width: 100px; height: auto;" />
   </div>
 
-  <!-- Content Compact -->
   <div style="padding: 15px 20px; text-align: center;">
 
     <h1 style="color: #0f0f0f; font-size: 20px; font-weight: 700; margin: 0 0 8px;">
-      Trial Expired
+      Time's Up! ⌛
     </h1>
     
     <div style="width: 40px; height: 2px; background-color: #000; margin: 0 auto 12px; border-radius: 2px;"></div>
 
     <p style="color: #555; line-height: 1.5; margin: 0 0 12px;">
       Hi <strong>${username}</strong>,<br/>
-      We hope you enjoyed your 7-day free trial. Your trial period has ended, but your journey doesn't have to stop here.
+      Your 24-hour trial has ended. Your portfolio is currently <strong>locked</strong>, but don't worry—all your progress is safely saved and ready to go live!
     </p>
 
-    <!-- Promo Box Compact -->
-    <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 6px; margin: 0 auto 15px; max-width: 350px;">
-        <p style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 5px; font-weight: 600;">Exclusive Gift For You</p>
-        <div style="font-family: monospace; font-size: 20px; color: #000; font-weight: 700; letter-spacing: 2px; margin-bottom: 4px;">
-            G7A2Q1DK
-        </div>
-        <p style="color: #64748b; font-size: 11px; margin: 0;">Use this promo code for a special discount!</p>
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin: 0 auto 15px; max-width: 350px;">
+        <p style="color: #475569; font-size: 13px; margin: 0;">
+          Unlock your full professional portfolio and keep your custom link active for just <strong>$1/month</strong>.
+        </p>
     </div>
 
-    <!-- Direct Headline Link -->
     <div style="margin-bottom: 15px; direction: ltr;">
-      <span style="font-size: 13px; font-weight: 600; color: #333;">Link: </span>
+      <span style="font-size: 13px; font-weight: 600; color: #333;">Unlock Link: </span>
       <a href="https://dgtportfolio.com/subscription" style="font-size: 13px; color: #2563eb; text-decoration: underline;">https://dgtportfolio.com/subscription</a>
     </div>
 
-    <!-- Button Compact -->
     <a href="https://dgtportfolio.com/subscription" style="display: inline-block; background-color: #000; color: #fff; text-decoration: none; padding: 10px 30px; border-radius: 6px; font-weight: 600; font-size: 14px;">
-      Subscribe Now & Save
+      Keep My Portfolio Online
     </a>
 
-    <p style="color: #7d7d7d; font-size: 12px; margin-top: 10px; margin-bottom: 0;">
-      Unlock the full potential of your portfolio and keep impressing your audience.
+    <p style="color: #7d7d7d; font-size: 12px; margin-top: 15px; margin-bottom: 0;">
+      Don't let your professional image expire. One click keeps you live and reachable.
     </p>
 
   </div>
 
-  <!-- Footer Minimal -->
   <div style="background-color: #fafafa; padding: 8px; text-align: center; color: #8c8c8c; border-top: 1px solid #ededed; font-size: 11px;">
     &copy; ${new Date().getFullYear()} DGT Portfolio. All rights reserved.
   </div>

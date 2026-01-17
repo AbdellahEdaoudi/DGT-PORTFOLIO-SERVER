@@ -524,10 +524,6 @@ exports.getUserByEmail = async (req, res) => {
 // 🟢 Get user by username
 exports.getUserByUsername = async (req, res) => {
   const { username } = req.params;
-  const user = await User.findOne({ username }).select("-__v");
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
-  }
   const whitelist = [
     "adam.carter.dev@gmail.com",
     "abdellahedaoudi80@gmail.com",
@@ -536,16 +532,21 @@ exports.getUserByUsername = async (req, res) => {
     "edaoudicontact@gmail.com"
   ];
   const createdAt = new Date(user.createdAt);
-  const sevenDaysLater = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const twentyFourHoursLater = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000); // 24 hours
   const now = new Date();
-  const isWithin7Days = sevenDaysLater > now;
-  if (whitelist.includes(user.email) || isWithin7Days) {
+  const isWithin24Hours = twentyFourHoursLater > now;
+
+  if (whitelist.includes(user.email) || isWithin24Hours) {
+    const user = await User.findOne({ username }).select("-__v");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     const links = await Links.find({ useremail: user.email }).select("namelink link");
     return res.status(200).json({
       status: 200,
       user,
       links,
-      note: "User is whitelisted, subscription check skipped."
+      note: "User is whitelisted or within trial period, subscription check skipped."
     });
   }
   const subscription = await Subscription.findOne({ userEmail: user.email });
@@ -554,6 +555,10 @@ exports.getUserByUsername = async (req, res) => {
   }
   if (subscription.status !== "ACTIVE") {
     return res.status(403).json({ message: "Your subscription is not active. Please renew or subscribe." });
+  }
+  const user = await User.findOne({ username }).select("-__v");
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
   }
   const links = await Links.find({ useremail: user.email }).select("namelink link");
   res.status(200).json({
@@ -565,10 +570,6 @@ exports.getUserByUsername = async (req, res) => {
 // 🟢 Get user by custom domain
 exports.getUserByCustomDomain = async (req, res) => {
   const { customDomain } = req.params;
-  const user = await User.findOne({ customDomainVerified: true, customDomain }).select("-__v");
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
-  }
   const whitelist = [
     "adam.carter.dev@gmail.com",
     "abdellahedaoudi80@gmail.com",
@@ -577,16 +578,21 @@ exports.getUserByCustomDomain = async (req, res) => {
     "edaoudicontact@gmail.com"
   ];
   const createdAt = new Date(user.createdAt);
-  const sevenDaysLater = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const twentyFourHoursLater = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000); // 24 hours
   const now = new Date();
-  const isWithin7Days = sevenDaysLater > now;
-  if (whitelist.includes(user.email) || isWithin7Days) {
+  const isWithin24Hours = twentyFourHoursLater > now;
+
+  if (whitelist.includes(user.email) || isWithin24Hours) {
+    const user = await User.findOne({ customDomainVerified: true, customDomain }).select("-__v");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     const links = await Links.find({ useremail: user.email }).select("namelink link");
     return res.status(200).json({
       status: 200,
       user,
       links,
-      note: "User is whitelisted, subscription check skipped."
+      note: "User is whitelisted or within trial period, subscription check skipped."
     });
   }
   const subscription = await Subscription.findOne({ userEmail: user.email });
@@ -595,6 +601,10 @@ exports.getUserByCustomDomain = async (req, res) => {
   }
   if (subscription.status !== "ACTIVE") {
     return res.status(403).json({ message: "Your subscription is not active. Please renew or subscribe." });
+  }
+  const user = await User.findOne({ customDomainVerified: true, customDomain }).select("-__v");
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
   }
   const links = await Links.find({ useremail: user.email }).select("namelink link");
   res.status(200).json({
