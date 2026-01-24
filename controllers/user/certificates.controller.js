@@ -49,12 +49,33 @@ exports.saveUserCertificateItem = async (req, res) => {
 
         if (item._id) {
             certObj._id = item._id;
+
+            // Find user and the specific certificate to check for old image
+            const user = await User.findOne({ email });
+            if (!user) return res.status(404).json({ message: "User not found" });
+
+            const oldCert = user.certificates.id(item._id);
+
+            // Delete old image if it exists and is different from the new one
+            if (oldCert && oldCert.cfimage && oldCert.cfimage !== certObj.cfimage) {
+                try {
+                    const regex = /\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z0-9]+$/;
+                    const match = oldCert.cfimage.match(regex);
+                    if (match && match[1]) {
+                        await cloudinary.uploader.destroy(match[1]);
+                    }
+                } catch (err) {
+                    console.error("Error deleting old image from Cloudinary during update:", err);
+                }
+            }
+
             // Update existing
             const updatedUser = await User.findOneAndUpdate(
                 { email, "certificates._id": item._id },
                 { $set: { "certificates.$": certObj } },
                 { new: true }
             );
+
             if (!updatedUser) return res.status(404).json({ message: "User or Certificate not found" });
             res.json(updatedUser);
 
@@ -96,15 +117,12 @@ exports.deleteUserCertificate = async (req, res) => {
         const certificate = user.certificates.id(certificateId);
         if (certificate?.cfimage) {
             try {
-                // Extract public_id
-                const parts = certificate.cfimage.split('/');
-                const filename = parts.pop();
-                const publicId = filename.split('.')[0];
-                let idToDelete = publicId;
-                if (parts.length > 0 && parts[parts.length - 1] === 'certificates') {
-                    idToDelete = `certificates/${publicId}`;
+                // Robust extraction of public_id
+                const regex = /\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z0-9]+$/;
+                const match = certificate.cfimage.match(regex);
+                if (match && match[1]) {
+                    await cloudinary.uploader.destroy(match[1]);
                 }
-                await cloudinary.uploader.destroy(idToDelete);
             } catch (err) {
                 console.error("Error deleting image from Cloudinary:", err);
             }
