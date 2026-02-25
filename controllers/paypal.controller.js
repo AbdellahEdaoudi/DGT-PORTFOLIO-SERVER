@@ -24,6 +24,8 @@ async function getAccessToken() {
   return response.data.access_token;
 }
 
+exports.getAccessToken = getAccessToken;
+
 // -------------------------------------------------------------
 // 2) CREATE PRODUCT + PLANS
 // -------------------------------------------------------------
