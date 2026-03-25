@@ -64,6 +64,21 @@ exports.getSubscriptions = async (req, res) => {
   }
 };
 
+// GET /user/:email
+exports.getUserSubscription = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const subscription = await Subscription.findOne({ userEmail: email, status: "ACTIVE" }).sort({ createdAt: -1 });
+    if (!subscription) {
+      return res.status(404).json({ success: false, message: "No active subscription found" });
+    }
+    res.status(200).json({ success: true, data: subscription });
+  } catch (err) {
+    console.error("Error fetching user subscription:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
 // حذف اشتراك بواسطة الـ ID
 exports.deleteSubscriptionById = async (req, res) => {
   try {
@@ -80,5 +95,81 @@ exports.deleteSubscriptionById = async (req, res) => {
   }
 };
 
+// Cancel subscription (PayPal API + DB update)
+exports.cancelSubscription = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const subscription = await Subscription.findById(id);
+    if (!subscription || !subscription.subscriptionID) {
+      return res.status(404).json({ success: false, message: "Subscription not found" });
+    }
 
+    const token = await getAccessToken();
+    const response = await fetch(`${BASE}/v1/billing/subscriptions/${subscription.subscriptionID}/cancel`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ reason: "Customer requested cancellation" })
+    });
 
+    if (response.ok || response.status === 204) {
+      subscription.status = "CANCELLED";
+      await subscription.save();
+      return res.status(200).json({ success: true, message: "Subscription cancelled successfully" });
+    } else {
+      const errorData = await response.json();
+      console.error("PayPal Error:", errorData);
+      return res.status(400).json({ success: false, message: "Failed to cancel at PayPal" });
+    }
+  } catch (err) {
+    console.error("Error cancelling subscription:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};// Sync subscription with PayPal status
+exports.syncSubscription = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const subscription = await Subscription.findById(id);
+    if (!subscription || !subscription.subscriptionID) {
+      return res.status(404).json({ success: false, message: "Subscription not found" });
+    }
+
+    const token = await getAccessToken();
+    const response = await fetch(`${BASE}/v1/billing/subscriptions/${subscription.subscriptionID}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const paypalData = await response.json();
+      // Update local status and expiry date
+      subscription.status = paypalData.status; // ACTIVE, CANCELLED, EXPIRED, etc.
+      
+      if (paypalData.billing_info && paypalData.billing_info.next_billing_time) {
+        subscription.expiresAt = new Date(paypalData.billing_info.next_billing_time);
+      } else if (paypalData.start_time && !subscription.expiresAt) {
+          // Fallback or logic for expired ones
+          // If it's cancelled, we might want to keep the old expiresAt or check the last payment
+      }
+
+      await subscription.save();
+      return res.status(200).json({ 
+        success: true, 
+        message: "Subscription synced successfully", 
+        data: subscription 
+      });
+    } else {
+      const errorData = await response.json();
+      console.error("PayPal Sync Error:", errorData);
+      return res.status(400).json({ success: false, message: "Failed to fetch status from PayPal" });
+    }
+  } catch (err) {
+    console.error("Error syncing subscription:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
