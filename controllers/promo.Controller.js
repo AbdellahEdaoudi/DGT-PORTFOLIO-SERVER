@@ -3,7 +3,7 @@ const axios = require("axios");
 const CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const SECRET = process.env.PAYPAL_SECRET;
 const BASE = process.env.BASE; // PayPal API base 
-const PROMO_PRODUCT_ID = "PROD-7V003284HW856604A";
+const PROMO_PRODUCT_ID = "PROD-96T7711539353642S";
 
 async function getAccessToken() {
   const auth = Buffer.from(`${CLIENT_ID}:${SECRET}`).toString("base64");

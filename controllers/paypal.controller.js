@@ -269,3 +269,25 @@ exports.createPromoProductAndPlans = async (req, res) => {
   }
 };
 
+
+exports.getPlans = async (req, res) => {
+  try {
+    const token = await getAccessToken();
+    const response = await axios.get(`${BASE}/v1/billing/plans`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { 
+        status: "ACTIVE", 
+        product_id: "PROD-7UP07399WB609431P", 
+        page_size: 20 
+      }
+    });
+
+    return res.json({
+      status: "success",
+      plans: response.data.plans || []
+    });
+  } catch (err) {
+    console.error("Fetch Plans Error:", err.response?.data || err.message);
+    return res.status(500).json({ status: "error", message: "Failed to fetch plans" });
+  }
+};
