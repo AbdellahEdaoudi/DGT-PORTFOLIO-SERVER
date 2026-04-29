@@ -1,7 +1,7 @@
 const User = require('../../models/User');
 const sanitizeHtml = require('sanitize-html');
 
-// 🟢 Save (Add or Update) a single project item
+// Save (Add or Update) a single project item
 exports.saveUserProjectItem = async (req, res) => {
     const { email } = req.user;
     let item = req.body;
@@ -55,7 +55,7 @@ exports.saveUserProjectItem = async (req, res) => {
     }
 };
 
-// 🟢 Delete a single project by ID
+// Delete a single project by ID
 exports.deleteUserProject = async (req, res) => {
     console.log("--> DELETE Project Requested");
     const { email } = req.user;
@@ -91,7 +91,7 @@ exports.deleteUserProject = async (req, res) => {
     }
 };
 
-// 🟢 Reorder projects
+// Reorder projects
 exports.reorderUserProjects = async (req, res) => {
     const { email } = req.user;
     const { projects } = req.body; // Expecting array of objects with _id

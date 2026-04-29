@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   country: String,
   category: String,
   urlimage: String,
+  displayEmail: String,
   bgcolorp: String,
   about: String,
   languages: [String],

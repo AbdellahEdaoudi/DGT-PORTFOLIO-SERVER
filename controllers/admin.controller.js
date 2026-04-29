@@ -37,7 +37,7 @@ exports.GetDataApp = async (req, res) => {
   }
 };
 
-// 🟢 Delete user by ID
+// Delete user by ID
 exports.deleteUserById = async (req, res) => {
   const { id } = req.params;
   const email = req.user.email

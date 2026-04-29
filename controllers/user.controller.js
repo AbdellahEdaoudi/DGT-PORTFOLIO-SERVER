@@ -12,7 +12,7 @@ const capitalizeWords = (str) => {
     .replace(/\s+/g, ' ');
 };
 
-// 🟢 Get all users
+// Get all users
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.find().select("-__v");
@@ -21,7 +21,7 @@ exports.getUsers = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-// 🟢 Create user
+// Create user
 exports.createUser = async (req, res) => {
   const userData = req.body;
   if (userData.email !== req.user?.email) {
@@ -71,11 +71,11 @@ exports.createUser = async (req, res) => {
 
     return res.status(201).json(newUser);
   } catch (error) {
-    console.error("❌ Error creating user:", error.message);
+    console.error("Error creating user:", error.message);
     return res.status(500).json({ error: error.message });
   }
 };
-// 🟢 Update user by email
+// Update user by email
 exports.updateUserByEmail = async (req, res) => {
   const { email } = req.params;
   const reqEmail = req.user?.email;
@@ -152,12 +152,12 @@ exports.updateUserByEmail = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-// 🟢 UpUserInfo
+// Update user info
 exports.UpUserInfo = async (req, res) => {
   const { email } = req.user;
 
   try {
-    const allowedFields = ["fullname", "username", "phoneNumber", "country", "category"];
+    const allowedFields = ["fullname", "username", "phoneNumber", "country", "category", "displayEmail"];
     const userData = {};
     allowedFields.forEach((f) => {
       if (req.body[f]) {
@@ -504,7 +504,7 @@ exports.UpUserSectionOrder = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-// 🟢 Get user by email
+// Get user by email
 exports.getUserByEmail = async (req, res) => {
   const { email } = req.params;
   const reqEmail = req.user.email;
@@ -521,7 +521,7 @@ exports.getUserByEmail = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-// 🟢 Get user by username
+// Get user by username
 exports.getUserByUsername = async (req, res) => {
   const { username } = req.params;
   const user = await User.findOne({ username }).select("-__v");
@@ -563,7 +563,7 @@ exports.getUserByUsername = async (req, res) => {
     links,
   });
 };
-// 🟢 Get user by custom domain
+// Get user by custom domain
 exports.getUserByCustomDomain = async (req, res) => {
   const { customDomain } = req.params;
   const user = await User.findOne({ customDomainVerified: true, customDomain }).select("-__v");
@@ -605,7 +605,7 @@ exports.getUserByCustomDomain = async (req, res) => {
     links,
   });
 };
-// 🟢 Get user by username
+// Get user metadata by username
 exports.getUserByUsernameMeta = async (req, res) => {
   const { username } = req.params;
   try {
@@ -624,7 +624,7 @@ exports.getUserByUsernameMeta = async (req, res) => {
   }
 };
 
-// 🟢 Get user by custom domain
+// Get user metadata by custom domain
 exports.getUserByCustomDomainMeta = async (req, res) => {
   const { customDomain } = req.params;
   try {
@@ -643,7 +643,7 @@ exports.getUserByCustomDomainMeta = async (req, res) => {
   }
 };
 
-// 🟢 Get all usernames for sitemap (including custom domains)
+// Get all usernames for sitemap (including custom domains)
 exports.getActiveUsernames = async (req, res) => {
   try {
     // Get all users that have a username

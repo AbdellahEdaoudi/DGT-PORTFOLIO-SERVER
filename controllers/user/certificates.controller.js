@@ -1,7 +1,7 @@
 const User = require('../../models/User');
 const cloudinary = require('cloudinary').v2;
 
-// 🟢 Upload Image Helper
+// Upload Image Helper
 exports.uploadCertificateImage = async (req, res) => {
     try {
         if (!req.files || req.files.length === 0) {
@@ -35,7 +35,7 @@ exports.uploadCertificateImage = async (req, res) => {
     }
 };
 
-// 🟢 Save (Add or Update) a single certificate item
+// Save (Add or Update) a single certificate item
 exports.saveUserCertificateItem = async (req, res) => {
     const { email } = req.user;
     let item = req.body;
@@ -99,7 +99,7 @@ exports.saveUserCertificateItem = async (req, res) => {
     }
 };
 
-// 🟢 Delete a single certificate item by ID
+// Delete a single certificate item by ID
 exports.deleteUserCertificate = async (req, res) => {
     const { email } = req.user;
     const { certificateId } = req.params;
@@ -141,7 +141,7 @@ exports.deleteUserCertificate = async (req, res) => {
     }
 };
 
-// 🟢 Reorder certificates
+// Reorder certificates
 exports.reorderUserCertificates = async (req, res) => {
     const { email } = req.user;
     const { certificates } = req.body;

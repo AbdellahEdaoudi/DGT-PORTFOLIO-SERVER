@@ -1,6 +1,6 @@
 const User = require('../../models/User');
 
-// 🟢 Save (Add or Update) a single education item
+// Save (Add or Update) a single education item
 exports.saveUserEducationItem = async (req, res) => {
     const { email } = req.user;
     let item = req.body;
@@ -45,7 +45,7 @@ exports.saveUserEducationItem = async (req, res) => {
     }
 };
 
-// 🟢 Delete a single education item by ID
+// Delete a single education item by ID
 exports.deleteUserEducation = async (req, res) => {
     const { email } = req.user;
     const { educationId } = req.params;
@@ -73,7 +73,7 @@ exports.deleteUserEducation = async (req, res) => {
     }
 };
 
-// 🟢 Reorder education
+// Reorder education
 exports.reorderUserEducation = async (req, res) => {
     const { email } = req.user;
     const { education } = req.body; // Expecting array of objects with _id

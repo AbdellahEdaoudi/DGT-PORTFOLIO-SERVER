@@ -1,6 +1,6 @@
 const User = require('../../models/User');
 
-// 🟢 Save (Add or Update) a single experience item
+// Save (Add or Update) a single experience item
 exports.saveUserExperienceItem = async (req, res) => {
     const { email } = req.user;
     let item = req.body;
@@ -45,7 +45,7 @@ exports.saveUserExperienceItem = async (req, res) => {
     }
 };
 
-// 🟢 Delete a single experience item by ID
+// Delete a single experience item by ID
 exports.deleteUserExperience = async (req, res) => {
     const { email } = req.user;
     const { experienceId } = req.params;
@@ -73,7 +73,7 @@ exports.deleteUserExperience = async (req, res) => {
     }
 };
 
-// 🟢 Reorder experience
+// Reorder experience
 exports.reorderUserExperience = async (req, res) => {
     const { email } = req.user;
     const { experience } = req.body; // Expecting array of objects with _id
