@@ -536,11 +536,11 @@ exports.getUserByUsername = async (req, res) => {
     "edaoudicontact@gmail.com"
   ];
   const createdAt = new Date(user.createdAt);
-  const twentyFourHoursLater = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000); // 24 hours
+  const sevenDaysLater = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
   const now = new Date();
-  const isWithin24Hours = twentyFourHoursLater > now;
+  const isWithin7Days = sevenDaysLater > now;
 
-  if (whitelist.includes(user.email) || isWithin24Hours) {
+  if (whitelist.includes(user.email) || isWithin7Days) {
     const links = await Links.find({ useremail: user.email }).select("namelink link");
     return res.status(200).json({
       status: 200,
@@ -578,11 +578,11 @@ exports.getUserByCustomDomain = async (req, res) => {
     "edaoudicontact@gmail.com"
   ];
   const createdAt = new Date(user.createdAt);
-  const twentyFourHoursLater = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000); // 24 hours
+  const sevenDaysLater = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
   const now = new Date();
-  const isWithin24Hours = twentyFourHoursLater > now;
+  const isWithin7Days = sevenDaysLater > now;
 
-  if (whitelist.includes(user.email) || isWithin24Hours) {
+  if (whitelist.includes(user.email) || isWithin7Days) {
     const links = await Links.find({ useremail: user.email }).select("namelink link");
     return res.status(200).json({
       status: 200,

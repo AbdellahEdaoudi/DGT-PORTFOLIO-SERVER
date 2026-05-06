@@ -36,14 +36,14 @@ const welcomeTemplate = (username) => `
   <div style="padding: 15px 20px; text-align: center;">
 
     <h1 style="color: #0f0f0f; font-size: 20px; font-weight: 700; margin: 0 0 8px;">
-      Quick! Your 24-Hour Access is Active 🚀
+      Quick! Your 7-Day Access is Active 🚀
     </h1>
 
     <div style="width: 40px; height: 2px; background-color: #000; margin: 0 auto 12px; border-radius: 2px;"></div>
 
     <p style="color: #555; line-height: 1.5; margin: 0 0 12px;">
       Hi <strong>${username}</strong>,<br/>
-      Your account is ready! You have <strong>24 hours</strong> of full premium access to build, customize, and launch your professional portfolio.
+      Your account is ready! You have <strong>7 days</strong> of full premium access to build, customize, and launch your professional portfolio.
     </p>
 
     <div style="text-align: left; direction: ltr; display: inline-block; width: 100%; max-width: 420px; font-size: 13px; margin-bottom: 15px; background: #fff9f0; padding: 10px; border: 1px solid #ffeeba; border-radius: 6px;">
@@ -94,7 +94,7 @@ const trialExpiredTemplate = (username) => `
 
     <p style="color: #555; line-height: 1.5; margin: 0 0 12px;">
       Hi <strong>${username}</strong>,<br/>
-      Your 24-hour trial has ended. Your portfolio is currently <strong>locked</strong>, but don't worry—all your progress is safely saved and ready to go live!
+      Your 7-day trial has ended. Your portfolio is currently <strong>locked</strong>, but don't worry—all your progress is safely saved and ready to go live!
     </p>
 
     <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin: 0 auto 15px; max-width: 350px;">
