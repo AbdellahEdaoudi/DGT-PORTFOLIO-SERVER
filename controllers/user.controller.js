@@ -12,6 +12,44 @@ const capitalizeWords = (str) => {
     .replace(/\s+/g, ' ');
 };
 
+const processImageUpload = async (file, email) => {
+  if (file.size > 200 * 1024) {
+    const fs = require('fs');
+    fs.unlinkSync(file.path);
+    const err = new Error("Image size must not exceed 200KB");
+    err.status = 400;
+    throw err;
+  }
+
+  const up = await cloudinary.uploader.upload(file.path, {
+    folder: "User_Images"
+  });
+
+  const currentUser = await User.findOne({ email });
+  if (currentUser?.urlimage) {
+    try {
+      // Attempt to extract public_id from URL
+      // URL format: https://res.cloudinary.com/cloud_name/image/upload/v12345678/folder/public_id.jpg
+      const urlParts = currentUser.urlimage.split('/');
+      const versionIndex = urlParts.findIndex(part => part.startsWith('v') && !isNaN(part.substring(1)));
+
+      if (versionIndex !== -1) {
+        const publicIdWithExt = urlParts.slice(versionIndex + 1).join('/');
+        const publicId = publicIdWithExt.split('.')[0];
+        await cloudinary.uploader.destroy(publicId);
+      } else {
+        // Fallback for older images without folder or standard structure
+        const publicId = currentUser.urlimage.split('/').pop().split('.')[0];
+        await cloudinary.uploader.destroy(publicId);
+      }
+    } catch (err) {
+      console.error("Error deleting old image:", err);
+    }
+  }
+
+  return up.secure_url;
+};
+
 // Get all users
 exports.getUsers = async (req, res) => {
   try {
@@ -174,40 +212,7 @@ exports.UpUserInfo = async (req, res) => {
       if (existingUser && existingUser.email !== email)
         return res.status(400).json({ error: "Username already exists" });
     }
-    if (req.file) {
-      if (req.file.size > 200 * 1024) {
-        const fs = require('fs');
-        fs.unlinkSync(req.file.path);
-        return res.status(400).json({ error: "Image size must not exceed 200KB" });
-      }
 
-      const up = await cloudinary.uploader.upload(req.file.path, {
-        folder: "User_Images"
-      });
-      userData.urlimage = up.secure_url;
-
-      const currentUser = await User.findOne({ email });
-      if (currentUser?.urlimage) {
-        try {
-          // Attempt to extract public_id from URL
-          // URL format: https://res.cloudinary.com/cloud_name/image/upload/v12345678/folder/public_id.jpg
-          const urlParts = currentUser.urlimage.split('/');
-          const versionIndex = urlParts.findIndex(part => part.startsWith('v') && !isNaN(part.substring(1)));
-
-          if (versionIndex !== -1) {
-            const publicIdWithExt = urlParts.slice(versionIndex + 1).join('/');
-            const publicId = publicIdWithExt.split('.')[0];
-            await cloudinary.uploader.destroy(publicId);
-          } else {
-            // Fallback for older images without folder or standard structure
-            const publicId = currentUser.urlimage.split('/').pop().split('.')[0];
-            await cloudinary.uploader.destroy(publicId);
-          }
-        } catch (err) {
-          console.error("Error deleting old image:", err);
-        }
-      }
-    }
     const updatedUser = await User.findOneAndUpdate(
       { email },
       { $set: userData },
@@ -222,6 +227,58 @@ exports.UpUserInfo = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.UpUserImage = async (req, res) => {
+  const { email } = req.user;
+  
+  try {
+    let urlimage;
+    
+    if (!req.file) {
+      urlimage = "https://res.cloudinary.com/dssrnghtr/image/upload/v1761258566/dgmlr4uuim5swutkp6a8.png";
+      
+      const currentUser = await User.findOne({ email });
+      if (currentUser?.urlimage && currentUser.urlimage !== urlimage) {
+        try {
+          const urlParts = currentUser.urlimage.split('/');
+          const versionIndex = urlParts.findIndex(part => part.startsWith('v') && !isNaN(part.substring(1)));
+
+          if (versionIndex !== -1) {
+            const publicIdWithExt = urlParts.slice(versionIndex + 1).join('/');
+            const publicId = publicIdWithExt.split('.')[0];
+            await cloudinary.uploader.destroy(publicId);
+          } else {
+            const publicId = currentUser.urlimage.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(publicId);
+          }
+        } catch (err) {
+          console.error("Error deleting old image:", err);
+        }
+      }
+    } else {
+      urlimage = await processImageUpload(req.file, email);
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { email },
+      { $set: { urlimage } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(updatedUser);
+  } catch (err) {
+    console.error("Update Image Error:", err);
+    if (err.status === 400) {
+      return res.status(400).json({ error: err.message });
+    }
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.UpUserAbout = async (req, res) => {
   const { email } = req.user;
   try {

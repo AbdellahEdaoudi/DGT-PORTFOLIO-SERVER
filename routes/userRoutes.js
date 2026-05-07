@@ -14,7 +14,8 @@ router.get('/metacustomdomain/:customDomain', UserController.getUserByCustomDoma
 router.post('/', isAuthenticated, UserController.createUser);
 // Update User Data
 router.put('/:email', isAuthenticated, upload.single('urlimage'), UserController.updateUserByEmail);
-router.put("/update/user-info", isAuthenticated, upload.single("urlimage"), UserController.UpUserInfo);
+router.put("/update/user-info", isAuthenticated, UserController.UpUserInfo);
+router.put("/update/user-image", isAuthenticated, upload.single("urlimage"), UserController.UpUserImage);
 router.put("/update/about", isAuthenticated, UserController.UpUserAbout);
 router.put("/update/bgcolor", isAuthenticated, UserController.UpUserBgColor);
 router.put("/update/languages", isAuthenticated, UserController.UpUserLanguages);
