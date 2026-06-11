@@ -81,3 +81,43 @@ exports.updateContactById = async (req, res) => {
   }
 };
 
+// Get all contacts belonging to the logged-in user
+exports.getUserContacts = async (req, res) => {
+  const email = req.user?.email;
+  if (!email) return res.status(401).json({ message: "Unauthorized" });
+  try {
+    const contacts = await Contacte.find({ email }).sort({ createdAt: -1 });
+    res.json(contacts);
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred while fetching user contacts", error });
+  }
+};
+
+// Delete a contact owned by the logged-in user
+exports.deleteUserContact = async (req, res) => {
+  const email = req.user?.email;
+  if (!email) return res.status(401).json({ message: "Unauthorized" });
+  try {
+    const contact = await Contacte.findById(req.params.id);
+    if (!contact) return res.status(404).json({ message: "Contact not found" });
+    if (contact.email !== email) return res.status(403).json({ message: "Forbidden" });
+
+    // Delete attachment from Cloudinary if exists
+    if (contact.attachment) {
+      try {
+        const urlParts = contact.attachment.split('/');
+        const fileWithExt = urlParts[urlParts.length - 1];
+        const publicId = `support_attachments/${fileWithExt.split('.')[0]}`;
+        await cloudinary.uploader.destroy(publicId);
+      } catch (cloudErr) {
+        console.error("Cloudinary delete error:", cloudErr.message);
+      }
+    }
+
+    await Contacte.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "Contact deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred while deleting the contact", error });
+  }
+};
+
