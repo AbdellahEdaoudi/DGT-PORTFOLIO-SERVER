@@ -1,5 +1,24 @@
 const User = require('../../models/User');
 const sanitizeHtml = require('sanitize-html');
+const cloudinary = require('../../utils/cloudinary');
+
+// Helper: delete a Cloudinary image by its URL
+const deleteCloudinaryImage = async (imageUrl) => {
+    if (!imageUrl || !imageUrl.includes('cloudinary.com')) return;
+    try {
+        const urlParts = imageUrl.split('/');
+        const versionIndex = urlParts.findIndex(p => p.startsWith('v') && !isNaN(p.substring(1)));
+        let publicId;
+        if (versionIndex !== -1) {
+            publicId = urlParts.slice(versionIndex + 1).join('/').split('.')[0];
+        } else {
+            publicId = urlParts.pop().split('.')[0];
+        }
+        await cloudinary.uploader.destroy(publicId);
+    } catch (err) {
+        console.error("Error deleting Cloudinary image:", err);
+    }
+};
 
 // Save (Add or Update) a single project item
 exports.saveUserProjectItem = async (req, res) => {
@@ -7,18 +26,47 @@ exports.saveUserProjectItem = async (req, res) => {
     let item = req.body;
 
     try {
+        // Handle image: file upload takes priority over URL in body
+        let imageUrl = item.image ? item.image.trim().substring(0, 1000) : "";
+
+        if (req.file) {
+            if (req.file.size > 200 * 1024) {
+                const fs = require('fs');
+                fs.unlinkSync(req.file.path);
+                return res.status(400).json({ error: "Image size must not exceed 200KB" });
+            }
+            // Upload new image to Cloudinary
+            const uploaded = await cloudinary.uploader.upload(req.file.path, {
+                folder: "Project_Images"
+            });
+            imageUrl = uploaded.secure_url;
+
+            // Delete old image if updating an existing project
+            if (item._id) {
+                const user = await User.findOne({ email, "projects._id": item._id });
+                const oldProject = user?.projects?.find(p => p._id.toString() === item._id);
+                if (oldProject?.image) {
+                    await deleteCloudinaryImage(oldProject.image);
+                }
+            }
+        }
+
         // Sanitize input
-        let techs = Array.isArray(item.technologies)
-            ? item.technologies
+        // Support both 'technologies' (JSON) and 'technologies[]' (FormData) keys
+        const rawTechs = item['technologies[]'] || item.technologies;
+        let techs = Array.isArray(rawTechs)
+            ? rawTechs
                 .map(t => (typeof t === "string" ? t.trim().substring(0, 20) : ""))
                 .filter(t => t)
-            : [];
+            : (typeof rawTechs === "string" && rawTechs
+                ? [rawTechs.trim().substring(0, 20)]
+                : []);
 
         const projectObj = {
             title: item.title ? item.title.trim().substring(0, 100) : "",
             description: item.description ? item.description.trim().substring(0, 2000) : "",
             link: item.link ? item.link.trim().substring(0, 1000) : "",
-            image: item.image ? item.image.trim().substring(0, 1000) : "",
+            image: imageUrl,
             technologies: techs,
             startDate: item.startDate ? item.startDate.trim().substring(0, 20) : "",
             endDate: item.endDate ? item.endDate.trim().substring(0, 20) : "",
@@ -55,6 +103,7 @@ exports.saveUserProjectItem = async (req, res) => {
     }
 };
 
+
 // Delete a single project by ID
 exports.deleteUserProject = async (req, res) => {
     console.log("--> DELETE Project Requested");
@@ -70,6 +119,10 @@ exports.deleteUserProject = async (req, res) => {
             return res.status(400).json({ message: "Invalid project ID" });
         }
 
+        // Fetch image URL before deleting (to clean up Cloudinary)
+        const userBefore = await User.findOne({ email, "projects._id": new mongoose.Types.ObjectId(projectId) });
+        const projectToDelete = userBefore?.projects?.find(p => p._id.toString() === projectId);
+
         console.log("Executing $pull...");
         const updatedUser = await User.findOneAndUpdate(
             { email },
@@ -84,7 +137,14 @@ exports.deleteUserProject = async (req, res) => {
         }
 
         console.log("Delete Successful");
+
+        // Clean up Cloudinary image after successful DB delete
+        if (projectToDelete?.image) {
+            await deleteCloudinaryImage(projectToDelete.image);
+        }
+
         res.json(updatedUser);
+
     } catch (error) {
         console.error("CRITICAL Error deleting project:", error);
         res.status(500).json({ error: error.message, stack: error.stack });
