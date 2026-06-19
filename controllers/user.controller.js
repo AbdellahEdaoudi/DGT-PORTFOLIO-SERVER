@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Links = require('../models/Links');
 const cloudinary = require("../utils/cloudinary");
 const sanitizeHtml = require('sanitize-html');
+const sanitizeObjectStrings = require('../utils/sanitizeObject');
 const Subscription = require('../models/Subscription');
 const { sendEmail, welcomeTemplate } = require('../utils/emailService');
 
@@ -12,7 +13,7 @@ const capitalizeWords = (str) => {
     .replace(/\s+/g, ' ');
 };
 
-const processImageUpload = async (file, email) => {
+const processImageUpload = async (file) => {
   if (file.size > 200 * 1024) {
     const fs = require('fs');
     fs.unlinkSync(file.path);
@@ -25,29 +26,26 @@ const processImageUpload = async (file, email) => {
     folder: "User_Images"
   });
 
-  const currentUser = await User.findOne({ email });
-  if (currentUser?.urlimage) {
-    try {
-      // Attempt to extract public_id from URL
-      // URL format: https://res.cloudinary.com/cloud_name/image/upload/v12345678/folder/public_id.jpg
-      const urlParts = currentUser.urlimage.split('/');
-      const versionIndex = urlParts.findIndex(part => part.startsWith('v') && !isNaN(part.substring(1)));
-
-      if (versionIndex !== -1) {
-        const publicIdWithExt = urlParts.slice(versionIndex + 1).join('/');
-        const publicId = publicIdWithExt.split('.')[0];
-        await cloudinary.uploader.destroy(publicId);
-      } else {
-        // Fallback for older images without folder or standard structure
-        const publicId = currentUser.urlimage.split('/').pop().split('.')[0];
-        await cloudinary.uploader.destroy(publicId);
-      }
-    } catch (err) {
-      console.error("Error deleting old image:", err);
-    }
-  }
-
   return up.secure_url;
+};
+
+// Helper to delete an image from Cloudinary
+const deleteCloudinaryImage = async (urlimage) => {
+  if (!urlimage || urlimage.includes('dgmlr4uuim5swutkp6a8')) return; // skip default image
+  try {
+    const urlParts = urlimage.split('/');
+    const versionIndex = urlParts.findIndex(part => part.startsWith('v') && !isNaN(part.substring(1)));
+    if (versionIndex !== -1) {
+      const publicIdWithExt = urlParts.slice(versionIndex + 1).join('/');
+      const publicId = publicIdWithExt.split('.')[0];
+      await cloudinary.uploader.destroy(publicId);
+    } else {
+      const publicId = urlimage.split('/').pop().split('.')[0];
+      await cloudinary.uploader.destroy(publicId);
+    }
+  } catch (err) {
+    console.error("Error deleting image from Cloudinary:", err);
+  }
 };
 
 // Get all users
@@ -61,50 +59,41 @@ exports.getUsers = async (req, res) => {
 };
 // Create user
 exports.createUser = async (req, res) => {
-  const userData = req.body;
-  if (userData.email !== req.user?.email) {
+  if (!req.user?.email) {
     return res.status(403).json({ message: "Forbidden" });
   }
-
-  for (const key in userData) {
-    if (typeof userData[key] === 'string') {
-      userData[key] = sanitizeHtml(userData[key]);
-    }
+  const existingUser = await User.findOne({ email: req.user?.email });
+  if (existingUser) {
+    return res.status(200).json({
+      message: "User already exists",
+      user: existingUser,
+    });
   }
-
-  if (userData.fullname) {
-    const words = userData.fullname.trim().split(/\s+/);
-    userData.fullname = words.length > 2 ? words.slice(0, 2).join(' ') : words.join(' ');
-    if (userData.fullname.length > 20) {
-      userData.fullname = userData.fullname.substring(0, 20);
-    }
-    userData.fullname = capitalizeWords(userData.fullname);
-  }
-
+  const userData = {
+    fullname: req.user?.fullname,
+    email: req.user?.email,
+    urlimage: "https://res.cloudinary.com/dssrnghtr/image/upload/v1761258566/dgmlr4uuim5swutkp6a8.png",
+    bgcolorp: "#1f2937",
+    username: req.user?.email?.split("@")[0],
+    theme: 1,
+  };
   if (userData.username) {
-    if (userData.username.length > 20) {
-      userData.username = userData.username.substring(0, 20);
+    let finalUsername = userData.username;
+    let counter = 1;
+    while (await User.findOne({ username: finalUsername })) {
+      finalUsername = `${userData.username}${counter}`;
+      counter++;
     }
-    userData.username = userData.username.replace(/[.\s/]/g, "").toLowerCase();
+    userData.username = finalUsername;
   }
 
   try {
-    const existingUser = await User.findOne({ email: userData.email });
-    if (existingUser) {
-      return res.status(200).json({
-        message: "User already exists",
-        user: existingUser,
-      });
-    }
     const newUser = await User.create(userData);
-
-    // Send Welcome Email
     try {
       const emailContent = welcomeTemplate(newUser.username || newUser.fullname);
       await sendEmail(newUser.email, "Welcome to DGT Portfolio!", emailContent);
     } catch (emailError) {
       console.error("Error sending welcome email:", emailError);
-      // Continue without failing registration
     }
 
     return res.status(201).json(newUser);
@@ -113,83 +102,7 @@ exports.createUser = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
-// Update user by email
-exports.updateUserByEmail = async (req, res) => {
-  const { email } = req.params;
-  const reqEmail = req.user?.email;
 
-  if (email !== reqEmail) {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-
-  try {
-    const userData = { ...req.body };
-    delete userData.email;
-
-    for (const key in userData) {
-      if (typeof userData[key] === "string") {
-        userData[key] = sanitizeHtml(userData[key]);
-      }
-    }
-
-    if (userData.fullname) {
-      const words = userData.fullname.trim().split(/\s+/);
-      userData.fullname =
-        words.length > 2 ? words.slice(0, 2).join(" ") : words.join(" ");
-      if (userData.fullname.length > 20)
-        userData.fullname = userData.fullname.substring(0, 20);
-      userData.fullname = userData.fullname
-        .split(" ")
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-        .join(" ");
-    }
-
-    if (userData.username) {
-      userData.username = userData.username
-        .replace(/\s/g, "")
-        .toLowerCase()
-        .substring(0, 20);
-      const existingUser = await User.findOne({ username: userData.username });
-      if (existingUser && existingUser.email !== email) {
-        return res.status(400).json({ error: "Username already exists" });
-      }
-    }
-
-    const parseIfJson = (value) => {
-      try {
-        return typeof value === "string" ? JSON.parse(value) : value;
-      } catch {
-        return value;
-      }
-    };
-
-    userData.languages = parseIfJson(userData.languages);
-    userData.services = parseIfJson(userData.services);
-    userData.skills = parseIfJson(userData.skills);
-    userData.education = parseIfJson(userData.education);
-    userData.experience = parseIfJson(userData.experience);
-    userData.projects = parseIfJson(userData.projects);
-
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path);
-      userData.urlimage = result.secure_url;
-    }
-
-    const updatedUser = await User.findOneAndUpdate({ email }, userData, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    res.json(updatedUser);
-  } catch (error) {
-    console.error("Error updating user:", error);
-    res.status(500).json({ error: error.message });
-  }
-};
 // Update user info
 exports.UpUserInfo = async (req, res) => {
   const { email } = req.user;
@@ -199,10 +112,10 @@ exports.UpUserInfo = async (req, res) => {
     const userData = {};
     allowedFields.forEach((f) => {
       if (req.body[f]) {
-        let val = sanitizeHtml(req.body[f].trim());
-        userData[f] = val.substring(0, 100);
+        userData[f] = req.body[f].trim().substring(0, 100);
       }
     });
+    sanitizeObjectStrings(userData);
     if (userData.fullname) {
       userData.fullname = userData.fullname.substring(0, 50);
     }
@@ -233,30 +146,19 @@ exports.UpUserImage = async (req, res) => {
   
   try {
     let urlimage;
+    let oldImageUrlToDelete = null;
+    const currentUser = await User.findOne({ email });
     
     if (!req.file) {
       urlimage = "https://res.cloudinary.com/dssrnghtr/image/upload/v1761258566/dgmlr4uuim5swutkp6a8.png";
-      
-      const currentUser = await User.findOne({ email });
       if (currentUser?.urlimage && currentUser.urlimage !== urlimage) {
-        try {
-          const urlParts = currentUser.urlimage.split('/');
-          const versionIndex = urlParts.findIndex(part => part.startsWith('v') && !isNaN(part.substring(1)));
-
-          if (versionIndex !== -1) {
-            const publicIdWithExt = urlParts.slice(versionIndex + 1).join('/');
-            const publicId = publicIdWithExt.split('.')[0];
-            await cloudinary.uploader.destroy(publicId);
-          } else {
-            const publicId = currentUser.urlimage.split('/').pop().split('.')[0];
-            await cloudinary.uploader.destroy(publicId);
-          }
-        } catch (err) {
-          console.error("Error deleting old image:", err);
-        }
+        oldImageUrlToDelete = currentUser.urlimage;
       }
     } else {
-      urlimage = await processImageUpload(req.file, email);
+      urlimage = await processImageUpload(req.file);
+      if (currentUser?.urlimage && currentUser.urlimage !== urlimage) {
+        oldImageUrlToDelete = currentUser.urlimage;
+      }
     }
 
     const updatedUser = await User.findOneAndUpdate(
@@ -267,6 +169,10 @@ exports.UpUserImage = async (req, res) => {
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    if (oldImageUrlToDelete) {
+      await deleteCloudinaryImage(oldImageUrlToDelete);
     }
 
     res.json(updatedUser);
@@ -358,6 +264,7 @@ exports.UpUserLanguages = async (req, res) => {
       }
       return "";
     }).filter(lang => lang);
+    sanitizeObjectStrings(languages);
 
     const updatedUser = await User.findOneAndUpdate(
       { email },
@@ -399,6 +306,7 @@ exports.UpUserServices = async (req, res) => {
       }
       return "";
     }).filter(serv => serv);
+    sanitizeObjectStrings(services);
 
     const updatedUser = await User.findOneAndUpdate(
       { email },
@@ -440,6 +348,7 @@ exports.UpUserSkills = async (req, res) => {
       }
       return "";
     }).filter(skil => skil);
+    sanitizeObjectStrings(skills);
 
     const updatedUser = await User.findOneAndUpdate(
       { email },
@@ -467,9 +376,10 @@ exports.UpUserSocials = async (req, res) => {
     const sanitizedSocials = {};
     for (const key in socials) {
       if (typeof socials[key] === "string") {
-        sanitizedSocials[key] = sanitizeHtml(socials[key].trim()).substring(0, 500);
+        sanitizedSocials[key] = socials[key].trim().substring(0, 500);
       }
     }
+    sanitizeObjectStrings(sanitizedSocials);
 
     const updatedUser = await User.findOneAndUpdate(
       { email },

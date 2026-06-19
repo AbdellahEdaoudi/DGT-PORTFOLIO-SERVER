@@ -1,5 +1,5 @@
 const User = require('../../models/User');
-const sanitizeHtml = require('sanitize-html');
+const sanitizeObjectStrings = require('../../utils/sanitizeObject');
 const cloudinary = require('../../utils/cloudinary');
 
 // Helper: delete a Cloudinary image by its URL
@@ -28,6 +28,7 @@ exports.saveUserProjectItem = async (req, res) => {
     try {
         // Handle image: file upload takes priority over URL in body
         let imageUrl = item.image ? item.image.trim().substring(0, 1000) : "";
+        let oldImageUrl = null;
 
         if (req.file) {
             if (req.file.size > 200 * 1024) {
@@ -41,12 +42,12 @@ exports.saveUserProjectItem = async (req, res) => {
             });
             imageUrl = uploaded.secure_url;
 
-            // Delete old image if updating an existing project
+            // Save old image URL if updating an existing project
             if (item._id) {
                 const user = await User.findOne({ email, "projects._id": item._id });
                 const oldProject = user?.projects?.find(p => p._id.toString() === item._id);
                 if (oldProject?.image) {
-                    await deleteCloudinaryImage(oldProject.image);
+                    oldImageUrl = oldProject.image;
                 }
             }
         }
@@ -62,7 +63,7 @@ exports.saveUserProjectItem = async (req, res) => {
                 ? [rawTechs.trim().substring(0, 20)]
                 : []);
 
-        const projectObj = {
+        const projectObj = sanitizeObjectStrings({
             title: item.title ? item.title.trim().substring(0, 100) : "",
             description: item.description ? item.description.trim().substring(0, 2000) : "",
             link: item.link ? item.link.trim().substring(0, 1000) : "",
@@ -70,7 +71,7 @@ exports.saveUserProjectItem = async (req, res) => {
             technologies: techs,
             startDate: item.startDate ? item.startDate.trim().substring(0, 20) : "",
             endDate: item.endDate ? item.endDate.trim().substring(0, 20) : "",
-        };
+        });
 
         if (item._id) {
             projectObj._id = item._id;
@@ -81,6 +82,12 @@ exports.saveUserProjectItem = async (req, res) => {
                 { new: true }
             );
             if (!updatedUser) return res.status(404).json({ message: "User or Project not found" });
+            
+            // Delete old image only after successful DB update
+            if (oldImageUrl) {
+                await deleteCloudinaryImage(oldImageUrl);
+            }
+            
             res.json(updatedUser);
 
         } else {

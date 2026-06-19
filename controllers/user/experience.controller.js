@@ -1,4 +1,5 @@
 const User = require('../../models/User');
+const sanitizeObjectStrings = require('../../utils/sanitizeObject');
 
 // Save (Add or Update) a single experience item
 exports.saveUserExperienceItem = async (req, res) => {
@@ -6,13 +7,13 @@ exports.saveUserExperienceItem = async (req, res) => {
     let item = req.body;
 
     try {
-        const experienceObj = {
+        const experienceObj = sanitizeObjectStrings({
             company: item.company ? item.company.trim().substring(0, 100) : "",
             role: item.role ? item.role.trim().substring(0, 100) : "",
             description: item.description ? item.description.trim().substring(0, 2000) : "",
             startDate: item.startDate ? item.startDate.trim().substring(0, 20) : "",
             endDate: item.endDate ? item.endDate.trim().substring(0, 20) : "",
-        };
+        });
 
         if (item._id) {
             experienceObj._id = item._id;

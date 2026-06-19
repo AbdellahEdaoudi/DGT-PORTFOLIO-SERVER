@@ -1,5 +1,6 @@
 const User = require('../../models/User');
 const cloudinary = require('cloudinary').v2;
+const sanitizeObjectStrings = require('../../utils/sanitizeObject');
 
 // Upload Image Helper
 exports.uploadCertificateImage = async (req, res) => {
@@ -41,11 +42,11 @@ exports.saveUserCertificateItem = async (req, res) => {
     let item = req.body;
 
     try {
-        const certObj = {
+        const certObj = sanitizeObjectStrings({
             title: item.title ? item.title.trim().substring(0, 100) : "",
             description: item.description ? item.description.trim().substring(0, 200) : "",
             cfimage: item.cfimage ? item.cfimage.trim().substring(0, 1000) : "",
-        };
+        });
 
         if (item._id) {
             certObj._id = item._id;
@@ -55,18 +56,11 @@ exports.saveUserCertificateItem = async (req, res) => {
             if (!user) return res.status(404).json({ message: "User not found" });
 
             const oldCert = user.certificates.id(item._id);
+            let oldImageUrlToDelete = null;
 
-            // Delete old image if it exists and is different from the new one
+            // Check if old image needs to be deleted
             if (oldCert && oldCert.cfimage && oldCert.cfimage !== certObj.cfimage) {
-                try {
-                    const regex = /\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z0-9]+$/;
-                    const match = oldCert.cfimage.match(regex);
-                    if (match && match[1]) {
-                        await cloudinary.uploader.destroy(match[1]);
-                    }
-                } catch (err) {
-                    console.error("Error deleting old image from Cloudinary during update:", err);
-                }
+                oldImageUrlToDelete = oldCert.cfimage;
             }
 
             // Update existing
@@ -77,6 +71,20 @@ exports.saveUserCertificateItem = async (req, res) => {
             );
 
             if (!updatedUser) return res.status(404).json({ message: "User or Certificate not found" });
+            
+            // Delete old image only after successful DB update
+            if (oldImageUrlToDelete) {
+                try {
+                    const regex = /\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z0-9]+$/;
+                    const match = oldImageUrlToDelete.match(regex);
+                    if (match && match[1]) {
+                        await cloudinary.uploader.destroy(match[1]);
+                    }
+                } catch (err) {
+                    console.error("Error deleting old image from Cloudinary during update:", err);
+                }
+            }
+            
             res.json(updatedUser);
 
         } else {

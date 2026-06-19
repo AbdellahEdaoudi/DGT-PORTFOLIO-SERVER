@@ -1,4 +1,5 @@
 const User = require('../../models/User');
+const sanitizeObjectStrings = require('../../utils/sanitizeObject');
 
 // Save (Add or Update) a single education item
 exports.saveUserEducationItem = async (req, res) => {
@@ -6,13 +7,13 @@ exports.saveUserEducationItem = async (req, res) => {
     let item = req.body;
 
     try {
-        const educationObj = {
+        const educationObj = sanitizeObjectStrings({
             school: item.school ? item.school.trim().substring(0, 100) : "",
             degree: item.degree ? item.degree.trim().substring(0, 100) : "",
             field: item.field ? item.field.trim().substring(0, 100) : "",
             startYear: item.startYear ? item.startYear.trim().substring(0, 20) : "",
             endYear: item.endYear ? item.endYear.trim().substring(0, 20) : "",
-        };
+        });
 
         if (item._id) {
             educationObj._id = item._id;
