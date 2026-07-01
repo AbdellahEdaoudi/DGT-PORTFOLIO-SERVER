@@ -3,7 +3,7 @@ const Links = require('../models/Links');
 const cloudinary = require("../utils/cloudinary");
 const sanitizeHtml = require('sanitize-html');
 const sanitizeObjectStrings = require('../utils/sanitizeObject');
-const Subscription = require('../models/Subscription');
+const Payment = require('../models/Payment');
 const { sendEmail, welcomeTemplate } = require('../utils/emailService');
 
 const capitalizeWords = (str) => {
@@ -48,15 +48,6 @@ const deleteCloudinaryImage = async (urlimage) => {
   }
 };
 
-// Get all users
-exports.getUsers = async (req, res) => {
-  try {
-    const users = await User.find().select("-__v");
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
 // Create user
 exports.createUser = async (req, res) => {
   if (!req.user?.email) {
@@ -471,23 +462,7 @@ exports.UpUserSectionOrder = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-// Get user by email
-exports.getUserByEmail = async (req, res) => {
-  const { email } = req.params;
-  const reqEmail = req.user.email;
-  if (email !== reqEmail) {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-  try {
-    const user = await User.findOne({ email }).select('-updatedAt -createdAt -__v').lean();
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    res.json(user);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
+
 // Get user by username
 exports.getUserByUsername = async (req, res) => {
   const { username } = req.params;
@@ -495,33 +470,25 @@ exports.getUserByUsername = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-  const whitelist = [
-    "adam.carter.dev@gmail.com",
-    "abdellahedaoudi80@gmail.com",
-    "soondiss8@gmail.com",
-    "dgt.portfolio.ma@gmail.com",
-    "edaoudicontact@gmail.com"
-  ];
   const createdAt = new Date(user.createdAt);
-  const sevenDaysLater = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  const thirtyDaysLater = new Date(createdAt.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
   const now = new Date();
-  const isWithin7Days = sevenDaysLater > now;
+  const isWithin30Days = thirtyDaysLater > now;
 
-  if (whitelist.includes(user.email) || isWithin7Days) {
+  if (isWithin30Days) {
     const links = await Links.find({ useremail: user.email }).select("namelink link");
     return res.status(200).json({
       status: 200,
       user,
       links,
-      note: "User is whitelisted or within trial period, subscription check skipped."
     });
   }
-  const subscription = await Subscription.findOne({ userEmail: user.email });
-  if (!subscription) {
-    return res.status(404).json({ message: "No subscription found for this user", email: user.email });
+  const payment = await Payment.findOne({ useremail: user.email, status: "ACTIVE" });
+  if (!payment) {
+    return res.status(404).json({ message: "No payment found for this user", email: user.email });
   }
-  if (subscription.status !== "ACTIVE") {
-    return res.status(403).json({ message: "Your subscription is not active. Please renew or subscribe." });
+  if (payment.status !== "ACTIVE") {
+    return res.status(403).json({ message: "Your payment is not active. Please complete payment." });
   }
   const links = await Links.find({ useremail: user.email }).select("namelink link");
   res.status(200).json({
@@ -537,33 +504,25 @@ exports.getUserByCustomDomain = async (req, res) => {
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
-  const whitelist = [
-    "adam.carter.dev@gmail.com",
-    "abdellahedaoudi80@gmail.com",
-    "soondiss8@gmail.com",
-    "dgt.portfolio.ma@gmail.com",
-    "edaoudicontact@gmail.com"
-  ];
   const createdAt = new Date(user.createdAt);
-  const sevenDaysLater = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  const thirtyDaysLater = new Date(createdAt.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
   const now = new Date();
-  const isWithin7Days = sevenDaysLater > now;
+  const isWithin30Days = thirtyDaysLater > now;
 
-  if (whitelist.includes(user.email) || isWithin7Days) {
+  if (isWithin30Days) {
     const links = await Links.find({ useremail: user.email }).select("namelink link");
     return res.status(200).json({
       status: 200,
       user,
       links,
-      note: "User is whitelisted or within trial period, subscription check skipped."
     });
   }
-  const subscription = await Subscription.findOne({ userEmail: user.email });
-  if (!subscription) {
-    return res.status(404).json({ message: "No subscription found for this user", email: user.email });
+  const payment = await Payment.findOne({ useremail: user.email, status: "ACTIVE"  });
+  if (!payment) {
+    return res.status(404).json({ message: "No payment found for this user", email: user.email });
   }
-  if (subscription.status !== "ACTIVE") {
-    return res.status(403).json({ message: "Your subscription is not active. Please renew or subscribe." });
+  if (payment.status !== "ACTIVE") {
+    return res.status(403).json({ message: "Your payment is not active. Please complete payment." });
   }
   const links = await Links.find({ useremail: user.email }).select("namelink link");
   res.status(200).json({
@@ -577,15 +536,12 @@ exports.getUserByUsernameMeta = async (req, res) => {
   const { username } = req.params;
   try {
     const user = await User.findOne({ username })
-      .select("fullname username email phoneNumber urlimage about category socials skills displayLanguage");
+      .select("fullname username urlimage category displayLanguage");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json({
-      status: true,
-      user,
-    });
+    res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -596,15 +552,12 @@ exports.getUserByCustomDomainMeta = async (req, res) => {
   const { customDomain } = req.params;
   try {
     const user = await User.findOne({ customDomainVerified: true, customDomain })
-      .select("fullname username email phoneNumber urlimage about category socials skills displayLanguage");
+      .select("fullname username urlimage category displayLanguage");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json({
-      status: true,
-      user,
-    });
+    res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

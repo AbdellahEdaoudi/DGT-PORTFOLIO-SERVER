@@ -5,6 +5,8 @@ const contactSchema = new mongoose.Schema({
   subject: { type: String },
   message: { type: String, required: true },
   attachment: { type: String },
+  adminReply: { type: String, default: "" },
+  adminReplyImage: { type: String, default: "" },
 }, { timestamps: true });
 
 module.exports = mongoose.models.Contact || mongoose.model('Contact', contactSchema);

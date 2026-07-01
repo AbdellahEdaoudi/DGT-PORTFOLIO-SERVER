@@ -7,9 +7,12 @@ const isAuthenticated = require('../middlewares/isAuthenticated');
 router.get('/appdata', isAuthenticated, AdminController.GetDataApp);
 router.delete('/user/:id', isAuthenticated, AdminController.deleteUserById);
 router.delete('/contacte/:id', isAuthenticated, AdminController.deleteContactById);
+router.put('/contacte/:id/reply', isAuthenticated, AdminController.replyToContact);
 router.delete('/link/:id', isAuthenticated, AdminController.deleteLinkById);
-router.delete('/promo/:id', isAuthenticated, AdminController.deletePromoById);
-router.post('/send-expired-emails', isAuthenticated, AdminController.sendTrialExpiredEmails);
+router.post('/payment', isAuthenticated, AdminController.createPaymentManually);
+router.delete('/payment/:id', isAuthenticated, AdminController.deletePaymentById);
+router.put('/payment/:id', isAuthenticated, AdminController.updatePaymentStatus);
+
 router.post('/send-bulk-emails', isAuthenticated, AdminController.sendBulkEmails);
 router.get('/cloudinary-images', isAuthenticated, AdminController.getCloudinaryImages);
 router.delete('/cloudinary-images', isAuthenticated, AdminController.deleteCloudinaryImage);

@@ -7,10 +7,7 @@ const { contactLimiter } = require('../Limiting/contactLimiter');
 // Contacts Request Routes
 router.get('/user-contacts', isAuthenticated, ContacteController.getUserContacts);
 router.delete('/user-contacts/:id', isAuthenticated, ContacteController.deleteUserContact);
-router.get('/', isAuthenticated, ContacteController.getContacts);
-router.get('/:id', isAuthenticated, ContacteController.getContactById);
 router.post('/', isAuthenticated, contactLimiter, ContacteController.createContact);
-router.put('/:id', isAuthenticated, ContacteController.updateContactById);
 
 
 module.exports = router;

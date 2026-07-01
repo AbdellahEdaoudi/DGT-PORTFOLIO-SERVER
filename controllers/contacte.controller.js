@@ -15,22 +15,6 @@ exports.getContacts = async (req, res) => {
   }
 };
 
-exports.getContactById = async (req, res) => {
-  const reqemail = req.user?.email;
-  if (reqemail !== process.env.EMAIL) {
-    return res.status(403).json({ message: 'Forbidden' });
-  }
-  try {
-    const contact = await Contacte.findById(req.params.id);
-    if (!contact) {
-      return res.status(404).json({ message: "Contact not found" });
-    }
-    res.json(contact); // Default status code is 200
-  } catch (error) {
-    res.status(500).json({ message: "An error occurred while fetching the contact", error });
-  }
-};
-
 exports.createContact = async (req, res) => {
   const ContactData = req.body;
   if (ContactData.email !== req.user?.email) {
@@ -42,13 +26,14 @@ exports.createContact = async (req, res) => {
       ContactData[key] = sanitizeHtml(ContactData[key]);
     }
   }
-  if (ContactData.message && ContactData.message.length > 500) {
-    return res.status(400).json({ success: false, message: "Message too long" });
-  }
-  if (ContactData.subject && ContactData.subject.length > 100) {
-    return res.status(400).json({ success: false, message: "Subject too long" });
-  }
+  if (ContactData.message) ContactData.message = ContactData.message.substring(0, 500);
+  if (ContactData.subject) ContactData.subject = ContactData.subject.substring(0, 100);
+
   try {
+    const count = await Contacte.countDocuments({ email: req.user?.email });
+    if (count >= 2) {
+      return res.status(400).json({ success: false, message: "Maximum 2 messages allowed" });
+    }
     if (ContactData.attachment) {
       try {
         const uploadResult = await cloudinary.uploader.upload(ContactData.attachment, {
@@ -66,18 +51,6 @@ exports.createContact = async (req, res) => {
     res.json(savedContact);
   } catch (error) {
     res.status(500).json({ message: "An error occurred while creating the contact", error });
-  }
-};
-
-exports.updateContactById = async (req, res) => {
-  try {
-    const updatedContact = await Contacte.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedContact) {
-      return res.status(404).json({ message: "Contact not found" });
-    }
-    res.json(updatedContact); // Default status code is 200
-  } catch (error) {
-    res.status(500).json({ message: "An error occurred while updating the contact", error });
   }
 };
 

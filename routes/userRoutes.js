@@ -5,8 +5,6 @@ const isAuthenticated = require('../middlewares/isAuthenticated');
 const upload = require('../middlewares/multer');
 
 // User Routes
-router.get('/', isAuthenticated, UserController.getUsers);
-router.get('/email/:email', isAuthenticated, UserController.getUserByEmail);
 router.get('/username/:username', UserController.getUserByUsername);
 router.get('/customdomain/:customDomain', UserController.getUserByCustomDomain);
 router.get('/metauser/:username', UserController.getUserByUsernameMeta);

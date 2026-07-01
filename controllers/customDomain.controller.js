@@ -139,18 +139,6 @@ exports.verifyCustomDomain = async (req, res) => {
     }
 };
 
-// Get User by Domain
-exports.getUserByDomain = async (req, res) => {
-    try {
-        const { domain } = req.params;
-        const user = await User.findOne({ customDomain: domain, customDomainVerified: true }).select('username');
-        if (!user) return res.status(404).json({ status: false });
-        res.json({ status: true, user });
-    } catch (error) {
-        res.status(500).json({ status: false });
-    }
-};
-
 // Remove Domain
 exports.removeCustomDomain = async (req, res) => {
     try {
@@ -166,18 +154,5 @@ exports.removeCustomDomain = async (req, res) => {
         res.json({ status: true, message: "Removed" });
     } catch (error) {
         res.status(500).json({ status: false, message: error.message });
-    }
-};
-
-exports.getCustomDomainSettings = async (req, res) => {
-    try {
-        const { email } = req.params;
-        const user = await User.findOne({ email }).select('username customDomain customDomainVerified');
-        if (!user) {
-            return res.json({ status: false, message: "User not found", data: null });
-        }
-        res.json({ status: true, data: user });
-    } catch (error) {
-        res.status(500).json({ status: false, message: error.message, data: null });
     }
 };

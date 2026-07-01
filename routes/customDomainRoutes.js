@@ -10,16 +10,7 @@ router.post("/set", isAuthenticated, customDomainLimiter, customDomainController
 // Verify custom domain (check A Record)
 router.post("/verify", isAuthenticated, customDomainLimiter, customDomainController.verifyCustomDomain);
 
-// Get user by custom domain (public route)
-router.get("/user/:domain", customDomainController.getUserByDomain);
-
-// Get user by domain (alternative route for middleware - public)
-router.get("/by-domain/:domain", customDomainController.getUserByDomain);
-
 // Remove custom domain
 router.delete("/remove", isAuthenticated, customDomainLimiter, customDomainController.removeCustomDomain);
-
-// Get custom domain settings for a user
-router.get("/settings/:email", customDomainController.getCustomDomainSettings);
 
 module.exports = router;
